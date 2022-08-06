@@ -137,6 +137,7 @@ class RuleBar(QtWidgets.QWidget):
                 pos = int(round(cur-lower) * increment + 1e-12)
                 if self.__direction == Qt.Horizontal:
                     rt = QRect(pos,height-length,1,length)
+                    print("pos", pos)
                     painter.drawLine(rt.topLeft(), rt.bottomLeft())
                 else:
                     rt = QRect(height-length,pos,length,1);
@@ -149,7 +150,7 @@ class RuleBar(QtWidgets.QWidget):
                     if (math.fabs(int(cur)) >= 2000 and ((int(cur))/1000)*1000 == (int(cur))):
                         unit_str = str((int(cur))/1000) + "k";
                     else:
-                        unit_str = str(cur)
+                        unit_str = str(int(cur))
                     if self.__direction == Qt.Horizontal:
                        w:int = fm.horizontalAdvance(unit_str)
                        painter.drawText(pos + 2,

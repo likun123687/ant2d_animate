@@ -9,13 +9,14 @@ from PySide6.QtWidgets import (
 from PySide6.QtGui import QPalette, QColor, QIcon, QBrush, QPen
 import sys
 from views.draw_view import DrawView
+from views.draw_scene import DrawScene
 
 class CanvasTabItem(QtWidgets.QWidget):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         # Defining a scene rect of 400x200, with it's origin at 0,0.
         # If we don't set this on creation, we can set it later with .setSceneRect
-        self.scene = QGraphicsScene(-400, -200, 800, 400)
+        self.scene = DrawScene(-400, -200, 800, 400)
         #self.scene = QGraphicsScene(0, 0, 800, 400)
         #self.scene = QGraphicsScene()
 

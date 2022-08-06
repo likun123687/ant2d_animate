@@ -71,7 +71,6 @@ class DrawView(QGraphicsView):
         self.__vruler.set_range(lower_y,upper_y,upper_y - lower_y )
         self.__vruler.update()
 
-    '''
     def wheelEvent(self, event: QWheelEvent) -> None:
         curPoint = event.position()
         scenePos = self.mapToScene(QPoint(curPoint.x(), curPoint.y()))
@@ -97,6 +96,5 @@ class DrawView(QGraphicsView):
         self.verticalScrollBar().setValue(int(viewPoint.y() - viewHeight * vScale ))
         self.update()
         super().wheelEvent(event)
-    '''
 
 
