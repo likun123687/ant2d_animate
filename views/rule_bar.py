@@ -3,7 +3,7 @@ import math
 from PySide6 import QtCore, QtGui, QtWidgets
 from PySide6.QtCore import Qt
 from PySide6.QtGui import QPalette, QColor, QIcon, QBrush, QPen, QPainter, QFontMetrics
-from PySide6.QtCore import Qt,QPoint, QRect
+from PySide6.QtCore import Qt,QPoint, QRect, QRectF
 
 MINIMUM_INCR = 5
 class SPRulerMetric:
@@ -92,10 +92,8 @@ class RuleBar(QtWidgets.QWidget):
         if upper == lower:
             return
         increment = width / (upper - lower)
-        print("increment", increment)
         scale = math.ceil(max_size)
         text_size = len(str(scale)) * digit_height + 1
-        print("text_size", text_size)
 
         scale = 0
         for item in ruler_metric.ruler_scale:
@@ -103,7 +101,6 @@ class RuleBar(QtWidgets.QWidget):
                 break
             scale += 1
 
-        print("scale", scale)
         length = 0
 
         for i in range(len(ruler_metric.subdivide) - 1, -1, -1):
@@ -112,7 +109,6 @@ class RuleBar(QtWidgets.QWidget):
                 subd_incr = 1.0
             else:
                 subd_incr = ruler_metric.ruler_scale[scale] / ruler_metric.subdivide[i]
-                print("subd_incr", i, subd_incr)
 
             if subd_incr * math.fabs(increment) <= MINIMUM_INCR:
                 continue
@@ -128,19 +124,22 @@ class RuleBar(QtWidgets.QWidget):
             else:
                 start = math.floor(upper/subd_incr) * subd_incr
                 end = math.ceil(lower /subd_incr) *subd_incr
-            print("length", length, i, ruler_metric.subdivide[i])
 
             tick_index:int = 0
             cur = start
             while cur < end:
             #for cur in range(start, end, subd_incr) :
-                pos = int(round(cur-lower) * increment + 1e-12)
+                #pos = int(round(cur-lower) * increment + 1e-12)
+                pos = 0
                 if self.__direction == Qt.Horizontal:
+                    pos = self.__view.mapFromScene(cur, 0).x()
                     rt = QRect(pos,height-length,1,length)
-                    print("pos", pos)
+                    #rt = QRectF(pos,height-length,1,length)
                     painter.drawLine(rt.topLeft(), rt.bottomLeft())
                 else:
+                    pos = self.__view.mapFromScene(0, cur).y()
                     rt = QRect(height-length,pos,length,1);
+                    #rt = QRectF(height-length,pos,length,1);
                     painter.drawLine(rt.topLeft(), rt.topRight())
 
                 label_spacing_px = math.fabs(increment*ruler_metric.ruler_scale[scale]/ruler_metric.subdivide[i])
@@ -168,8 +167,6 @@ class RuleBar(QtWidgets.QWidget):
                         painter.restore()
 
                 tick_index+=1
-                if i == 0:
-                    print("i=0 cur ", cur, subd_incr)
                 cur += subd_incr
 
     def draw_pos(self, painter):

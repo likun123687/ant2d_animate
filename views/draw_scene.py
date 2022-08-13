@@ -1,10 +1,17 @@
 from PySide6.QtWidgets import (
-    QGraphicsScene
+    QGraphicsScene,
+    QGraphicsItemGroup
 )
 
+from PySide6.QtWidgets import QGraphicsScene, QGraphicsView, QGraphicsRectItem, QApplication, QGraphicsPolygonItem, QGraphicsLineItem, QGraphicsEllipseItem
+
+from PySide6.QtCore import Qt, QSize, QRectF, QPointF
 from PySide6.QtCore import Qt, QSize
 from PySide6.QtGui import QPalette, QColor, QIcon, QBrush, QPen, QPainter
+from PySide6 import QtGui
+
 import math
+from views.bone import Bone
 
 class DrawScene(QGraphicsScene):
     def __init__(self, *args, **kwargs):
@@ -48,3 +55,12 @@ class DrawScene(QGraphicsScene):
         painter.drawLine(0, top,0, bottom)
 
         painter.restore()
+
+    def mousePressEvent(self, event):
+        if event.button() == Qt.LeftButton:
+            if self.itemAt(event.scenePos(), QtGui.QTransform()):
+                print("at item")
+            else:
+                self.__bone = Bone(event.scenePos(), self)
+
+        super().mousePressEvent(event)

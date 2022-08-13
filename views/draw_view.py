@@ -1,7 +1,7 @@
 
 from views.rule_bar import RuleBar, CornerBox, RULER_SIZE
-from PySide6.QtCore import Qt,QPoint
-from PySide6.QtGui import QPalette, QColor, QIcon, QBrush, QPen, QPainter, QWheelEvent 
+from PySide6.QtCore import Qt,QPoint, QEvent
+from PySide6.QtGui import QPalette, QColor, QIcon, QBrush, QPen, QPainter, QWheelEvent, QMouseEvent
 
 from PySide6.QtWidgets import (
     QLabel,
@@ -20,7 +20,11 @@ class DrawView(QGraphicsView):
         self.__vruler = RuleBar(Qt.Vertical, self, self)
         self.__box =  CornerBox(self)
         self.setAttribute(Qt.WA_DeleteOnClose)
-        self.setDragMode(QGraphicsView.ScrollHandDrag)           #启用拖动
+        self.__pan = False
+        self.__pan_start_x = 0
+        self.__pan_start_y = 0
+        #self.viewport().installEventFilter(self)
+        #self.setDragMode(QGraphicsView.ScrollHandDrag)           #启用拖动
 
     def zoom_in(self):
         self.scale(1.2, 1.2)
@@ -32,7 +36,16 @@ class DrawView(QGraphicsView):
 
     def mouseMoveEvent(self, event):
         super().mouseMoveEvent(event)
-        ps = self.mapToScene(event.pos())
+        if self.__pan:
+            self.horizontalScrollBar().setValue(self.horizontalScrollBar().value() - (event.x() - self.__pan_start_x))
+            self.verticalScrollBar().setValue(self.verticalScrollBar().value() - (event.y() - self.__pan_start_y))
+            self.__pan_start_x = event.x()
+            self.__pan_start_y = event.y()
+            event.accept()
+
+        event.ignore()
+
+        #ps = self.mapToScene(event.pos())
         self.__hruler.update_position(event.pos())
         self.__vruler.update_position(event.pos())
 
@@ -58,12 +71,10 @@ class DrawView(QGraphicsView):
 
         viewbox = self.rect()
         offset = self.mapFromScene(self.scene().sceneRect().center()) #scene原点在中点了
-        print("offset==", viewbox, self.scene().sceneRect().topLeft(), offset)
         factor = 1 / self.transform().m11()
         lower_x = factor * ( viewbox.left()  - offset.x() ) #计算出x轴最左边的scene坐标
         upper_x = factor * ( viewbox.right() - RULER_SIZE - offset.x())
         self.__hruler.set_range(lower_x,upper_x,upper_x - lower_x )
-        print("set_range===", lower_x,upper_x,upper_x - lower_x )
         self.__hruler.update()
 
         lower_y = factor * ( viewbox.top() - offset.y()) * 1
@@ -97,4 +108,25 @@ class DrawView(QGraphicsView):
         self.update()
         super().wheelEvent(event)
 
+    def mousePressEvent(self, event):
+        if event.button() == Qt.RightButton:
+            self.__pan = True
+            self.__pan_start_x = event.x()
+            self.__pan_start_y = event.y()
+            self.setCursor(Qt.ClosedHandCursor)
+            event.accept()
+            return
+
+        super().mousePressEvent(event)
+        event.ignore()
+
+
+    def mouseReleaseEvent(self, event):
+        if event.button() == Qt.RightButton:
+            self.__pan = False
+            self.setCursor(Qt.ArrowCursor)
+            event.accept()
+            return
+        super().mouseReleaseEvent(event)
+        event.ignore()
 
