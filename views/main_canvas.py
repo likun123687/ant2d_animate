@@ -13,16 +13,17 @@ from PySide6.QtWidgets import (
     QLabel,
     QTreeWidget,
     QTreeWidgetItem,
-QGraphicsScene, QGraphicsView, QGraphicsRectItem,QStackedLayout
+    QGraphicsScene, QGraphicsView, QGraphicsRectItem, QStackedLayout
 )
 from PySide6.QtGui import QPalette, QColor, QIcon, QBrush, QPen
 import sys
 
+
 class MainCanvas(QtWidgets.QTabWidget):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        #tabs = QtWidgets.QTabWidget(self)
+        # tabs = QtWidgets.QTabWidget(self)
         self.setMovable(True)
         self.addTab(CanvasTabItem(), "111")
-        #tabs.setCurrentIndex(1)
-        #tabs.addTab(QLabel("bbbb"), "222")
+        # tabs.setCurrentIndex(1)
+        # tabs.addTab(QLabel("bbbb"), "222")
