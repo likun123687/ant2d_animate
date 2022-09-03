@@ -51,6 +51,11 @@ class RuleBar(QtWidgets.QWidget):
     def paintEvent(self, event):
         ruler_rect = self.rect()
         painter = QPainter(self)
+        p = QPen()
+        p.setStyle(Qt.SolidLine)
+        p.setWidthF(1)
+        p.setCosmetic(True)
+        painter.setPen(p)
         painter.fillRect(ruler_rect, self.__face_color)
         if self.__direction == Qt.Horizontal:
             painter.drawLine(ruler_rect.bottomLeft(), ruler_rect.bottomRight())

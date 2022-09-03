@@ -74,37 +74,40 @@ class DrawView(QGraphicsView):
         factor = 1 / self.transform().m11()
         lower_x = factor * (view_box.left() - offset.x())  # 计算出x轴最左边的scene坐标
         upper_x = factor * (view_box.right() - RULER_SIZE - offset.x())
+        # upper_x = factor * (view_box.right() - offset.x())
+
         self.__h_ruler.set_range(lower_x, upper_x, upper_x - lower_x)
         self.__h_ruler.update()
 
         lower_y = factor * (view_box.top() - offset.y()) * 1
         upper_y = factor * (view_box.bottom() - RULER_SIZE - offset.y()) * 1
+        # upper_y = factor * (view_box.bottom() - offset.y()) * 1
         self.__v_ruler.set_range(lower_y, upper_y, upper_y - lower_y)
         self.__v_ruler.update()
 
     def wheelEvent(self, event: QWheelEvent) -> None:
-        curPoint = event.position()
-        scenePos = self.mapToScene(QPoint(curPoint.x(), curPoint.y()))
+        cur_point = event.position()
+        scene_pos = self.mapToScene(QPoint(cur_point.x(), cur_point.y()))
 
-        viewWidth = self.viewport().width()
-        viewHeight = self.viewport().height()
+        view_width = self.viewport().width()
+        view_height = self.viewport().height()
 
-        hScale = curPoint.x() / viewWidth
-        vScale = curPoint.y() / viewHeight
+        h_scale = cur_point.x() / view_width
+        v_scale = cur_point.y() / view_height
 
-        wheelDeltaValue = event.angleDelta().y()
-        scaleFactor = self.transform().m11()
-        if (scaleFactor < 0.05 and wheelDeltaValue < 0) or (scaleFactor > 50 and wheelDeltaValue > 0):
+        wheel_delta_value = event.angleDelta().y()
+        scale_factor = self.transform().m11()
+        if (scale_factor < 0.05 and wheel_delta_value < 0) or (scale_factor > 50 and wheel_delta_value > 0):
             return
 
-        if wheelDeltaValue > 0:
+        if wheel_delta_value > 0:
             self.zoom_in()
         else:
             self.zoom_out()
 
-        viewPoint = self.transform().map(scenePos)
-        self.horizontalScrollBar().setValue(int(viewPoint.x() - viewWidth * hScale))
-        self.verticalScrollBar().setValue(int(viewPoint.y() - viewHeight * vScale))
+        view_point = self.transform().map(scene_pos)
+        self.horizontalScrollBar().setValue(int(view_point.x() - view_width * h_scale))
+        self.verticalScrollBar().setValue(int(view_point.y() - view_height * v_scale))
         self.update()
         super().wheelEvent(event)
 

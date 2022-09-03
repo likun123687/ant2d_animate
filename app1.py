@@ -2,12 +2,12 @@ import sys
 from PySide6.QtWidgets import (
     QMainWindow, QApplication,
     QLabel, QToolBar, QStatusBar,
-    QDockWidget,QStackedLayout,QWidget,QGraphicsScene,
-    QGraphicsScene, QGraphicsView, QGraphicsRectItem,QStackedLayout
+    QDockWidget, QStackedLayout, QWidget, QGraphicsScene,
+    QGraphicsScene, QGraphicsView, QGraphicsRectItem, QStackedLayout
 )
 from PySide6.QtCore import QRect, QPoint
 from PySide6.QtGui import QAction, QIcon
-from PySide6.QtCore import Qt,QSize
+from PySide6.QtCore import Qt, QSize
 from PySide6.QtGui import QPalette, QColor, QIcon, QBrush, QPen
 from PySide6 import QtCore, QtGui, QtWidgets
 
@@ -16,6 +16,7 @@ from views.scene_panel import ScenePanel
 from views.draw_order_panel import DrawOrderPanel
 from views.library_panel import LibraryPanel
 from views.main_canvas import MainCanvas
+
 
 class MainWindow(QMainWindow):
 
@@ -57,7 +58,7 @@ class MainWindow(QMainWindow):
         self.tabs.setMovable(True)
         self.tabs.addTab(self.view, "111")
 
-        self.central_widget = QWidget()               # define central widget
+        self.central_widget = QWidget()  # define central widget
         self.setCentralWidget(self.central_widget)
 
         self.stacklayout = QStackedLayout()
@@ -65,7 +66,7 @@ class MainWindow(QMainWindow):
         self.central_widget.setLayout(self.stacklayout)
 
         toolbar = QToolBar("My main toolbar")
-        toolbar.setIconSize(QSize(16,16))
+        toolbar.setIconSize(QSize(16, 16))
         self.addToolBar(toolbar)
 
         button_action = QAction(QIcon("bug.png"), "Your button", self)
@@ -80,7 +81,7 @@ class MainWindow(QMainWindow):
 
         self.setStatusBar(QStatusBar(self))
 
-        #菜单栏
+        # 菜单栏
         menu = self.menuBar()
         file_menu = menu.addMenu("文件")
         file_menu.addAction(button_action)
@@ -89,26 +90,26 @@ class MainWindow(QMainWindow):
         window_menu = menu.addMenu("窗口")
         help_menu = menu.addMenu("帮助")
 
-        #左侧属性面板
-        self.property_panel_dock = QDockWidget('Property',self)
+        # 左侧属性面板
+        self.property_panel_dock = QDockWidget('Property', self)
         self.property_panel_dock.setWidget(PropertyPanel())
         self.property_panel_dock.setFloating(False)
         self.addDockWidget(Qt.LeftDockWidgetArea, self.property_panel_dock)
 
-        #右侧面板
-        self.scene_panel_dock = QDockWidget('Scene',self)
+        # 右侧面板
+        self.scene_panel_dock = QDockWidget('Scene', self)
         self.scene_panel_dock.setWidget(ScenePanel())
         self.scene_panel_dock.setFloating(False)
         self.addDockWidget(Qt.RightDockWidgetArea, self.scene_panel_dock)
-        
-        #draw order panel
-        self.draw_order_panel_dock = QDockWidget('draw order',self)
+
+        # draw order panel
+        self.draw_order_panel_dock = QDockWidget('draw order', self)
         self.draw_order_panel_dock.setWidget(DrawOrderPanel())
         self.draw_order_panel_dock.setFloating(False)
         self.tabifyDockWidget(self.scene_panel_dock, self.draw_order_panel_dock)
 
-        #library panel
-        self.library_panel_dock = QDockWidget('library',self)
+        # library panel
+        self.library_panel_dock = QDockWidget('library', self)
         self.library_panel_dock.setWidget(LibraryPanel())
         self.library_panel_dock.setFloating(False)
         self.addDockWidget(Qt.RightDockWidgetArea, self.library_panel_dock)
@@ -116,10 +117,10 @@ class MainWindow(QMainWindow):
     def onMyToolBarButtonClick(self, s):
         print("click", s)
 
+
 app = QApplication(sys.argv)
 
 window = MainWindow()
 window.show()
 
 app.exec_()
-
