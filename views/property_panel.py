@@ -5,6 +5,7 @@ from PySide6.QtWidgets import (
 )
 from PySide6.QtGui import QPalette, QColor
 
+
 class PropertyPanel(QtWidgets.QWidget):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -27,5 +28,3 @@ class PropertyPanel(QtWidgets.QWidget):
         palette = self.palette()
         palette.setColor(QPalette.Window, QColor('gray'))
         self.setPalette(palette)
-
-

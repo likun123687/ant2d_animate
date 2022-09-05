@@ -21,10 +21,11 @@ from PySide6.QtWidgets import (
 from PySide6.QtGui import QPalette, QColor, QIcon, QBrush, QPen
 import sys
 
+
 class MainCanvas(QtWidgets.QTabWidget):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        #tabs = QtWidgets.QTabWidget(self)
+        # tabs = QtWidgets.QTabWidget(self)
         self.setMovable(True)
         self.addTab(CanvasTabItem(), "111")
         #self.setCurrentIndex(1)
