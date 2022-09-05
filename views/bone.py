@@ -17,9 +17,11 @@ class Ring(QGraphicsEllipseItem):
 class DragPoint(QGraphicsEllipseItem):
     def __init__(self, rect, parent=None):
         super().__init__(rect, parent)
-        self.setFlags(QGraphicsItem.ItemIsMovable | QGraphicsItem.ItemIsSelectable)
+        self.setFlags(QGraphicsItem.ItemIsMovable | QGraphicsItem.ItemIsSelectable | QGraphicsItem.ItemSendsGeometryChanges)
 
     def itemChange(self, change, value):
+        if change == QGraphicsItem.ItemPositionChange:
+            print("item change", value)
         return super().itemChange(change, value)
 
 '''
@@ -72,6 +74,7 @@ class Bone(QGraphicsItemGroup):
         arrow_polygon = QPolygonF([p0, p1, p2, p3])
         arrow = Arrow(arrow_polygon)
         arrow.setPos(position)
+        arrow.setRotation(30)
         pen.setWidthF(0.2)
         pen.setColor(Qt.black)
         arrow.setPen(pen)
