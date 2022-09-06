@@ -1,9 +1,12 @@
 import math
+from typing import Union
 
 from PySide6.QtGui import QIcon, QBrush, Qt, QPalette, QColor, QPen, QPainter
 from PySide6.QtWidgets import QGraphicsView, QTreeWidget, QTreeWidgetItem, QGraphicsScene, QWidget
 
 from views.time_line.common import SUB_DIVIDE_INCR, GRID_SPACE
+from views.time_line.divisions_bar import DivisionsBar
+from views.time_line.left_panel import TrackTreeCtrl
 
 
 class TrackScene(QGraphicsScene):
@@ -43,7 +46,8 @@ class TrackScene(QGraphicsScene):
 class TrackGraphicsView(QGraphicsView):
     def __init__(self, scene, parent=None):
         super().__init__(scene, parent)
-        self.divisions_bar = None
+        self._divisions_bar: Union[DivisionsBar, None] = None
+        self._track_tree_ctrl: Union[TrackTreeCtrl, None] = None
 
     def update_ruler(self):
         if self.scene() is None:
@@ -54,8 +58,8 @@ class TrackGraphicsView(QGraphicsView):
         lower_x = view_box.left() - offset.x()
         upper_x = view_box.right() - offset.x()
 
-        self.divisions_bar.set_range(lower_x, upper_x, upper_x - lower_x)
-        self.divisions_bar.update()
+        self._divisions_bar.set_range(lower_x, upper_x, upper_x - lower_x)
+        self._divisions_bar.update()
 
     def resizeEvent(self, event):
         super().resizeEvent(event)
@@ -66,3 +70,28 @@ class TrackGraphicsView(QGraphicsView):
     def scrollContentsBy(self, dx, dy):
         super().scrollContentsBy(dx, dy)
         self.update_ruler()
+        scene = self.scene()
+        if scene is not None:
+            scene.update()
+        if self._track_tree_ctrl is not None:
+            pos = self._track_tree_ctrl.pos()
+            old_size = self._track_tree_ctrl.size()
+            print(old_size.width(), old_size.height() + dy)
+            self._track_tree_ctrl.resize(old_size.width(), old_size.height() - dy)
+            self._track_tree_ctrl.move(pos.x(), pos.y() + dy)
+
+    @property
+    def track_tree_ctrl(self) -> Union[TrackTreeCtrl, None]:
+        return self._track_tree_ctrl
+
+    @track_tree_ctrl.setter
+    def track_tree_ctrl(self, value: TrackTreeCtrl):
+        self._track_tree_ctrl = value
+
+    @property
+    def divisions_bar(self) -> Union[DivisionsBar, None]:
+        return self._divisions_bar
+
+    @divisions_bar.setter
+    def divisions_bar(self, value: DivisionsBar):
+        self._divisions_bar = value

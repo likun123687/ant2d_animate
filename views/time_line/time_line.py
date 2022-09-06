@@ -10,23 +10,26 @@ from views.time_line.track_view import TrackScene, TrackGraphicsView
 class TimeLineView(QWidget):
     def __init__(self, parent=None):
         super().__init__(parent)
-        self.left_panel = LeftPanel(self)
+        self._left_panel: LeftPanel = LeftPanel(self)
 
-        self.scene = TrackScene(0, 0, 800, 600)
+        self._scene: TrackScene = TrackScene(0, 0, 3000, 1500)
 
-        self.graphics_view = TrackGraphicsView(self.scene, self)
-        self.graphics_view.setAlignment(Qt.AlignTop | Qt.AlignLeft)
+        self._graphics_view: TrackGraphicsView = TrackGraphicsView(self._scene, self)
+        self._graphics_view.setAlignment(Qt.AlignTop | Qt.AlignLeft)
 
-        self.divisions_bar = DivisionsBar(self.graphics_view, self)
-        self.graphics_view.divisions_bar = self.divisions_bar
+        self._divisions_bar: DivisionsBar = DivisionsBar(self._graphics_view, self)
+        self._graphics_view.divisions_bar = self._divisions_bar
+
+        # track_tree_ctrl位置跟随
+        self._graphics_view.track_tree_ctrl = self._left_panel.track_tree_ctrl
 
     def resizeEvent(self, event):
         super().resizeEvent(event)
-        self.left_panel.resize(LEFT_PANEL_WIDTH, TRACK_VIEW_HEIGHT)
+        self._left_panel.resize(LEFT_PANEL_WIDTH, TRACK_VIEW_HEIGHT)
 
-        self.divisions_bar.resize(self.size().width() - LEFT_PANEL_WIDTH, DIVISIONS_BAR_HEIGHT)
-        self.divisions_bar.move(LEFT_PANEL_WIDTH, 0)
+        self._divisions_bar.resize(self.size().width() - LEFT_PANEL_WIDTH, DIVISIONS_BAR_HEIGHT)
+        self._divisions_bar.move(LEFT_PANEL_WIDTH, 0)
 
-        self.graphics_view.resize(self.size().width() - LEFT_PANEL_WIDTH,
-                                  TRACK_VIEW_HEIGHT - DIVISIONS_BAR_HEIGHT)
-        self.graphics_view.move(LEFT_PANEL_WIDTH, DIVISIONS_BAR_HEIGHT)
+        self._graphics_view.resize(self.size().width() - LEFT_PANEL_WIDTH,
+                                   TRACK_VIEW_HEIGHT - DIVISIONS_BAR_HEIGHT)
+        self._graphics_view.move(LEFT_PANEL_WIDTH, DIVISIONS_BAR_HEIGHT)

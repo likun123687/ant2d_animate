@@ -64,7 +64,7 @@ class DivisionsBar(QWidget):
 
         start = math.floor(lower / SUB_DIVIDE_INCR) * SUB_DIVIDE_INCR
         end = math.ceil(upper / SUB_DIVIDE_INCR) * SUB_DIVIDE_INCR
-        print("start end", start, end)
+        # print("start end", start, end)
         for cur in range(start, end, SUB_DIVIDE_INCR):
             if cur == 0:
                 continue
@@ -72,10 +72,10 @@ class DivisionsBar(QWidget):
             rt = QRect(pos, DIVISIONS_BAR_HEIGHT - TICK_HEIGHT, 1, TICK_HEIGHT)
             painter.drawLine(rt.topLeft(), rt.bottomLeft())
 
-            unit_str = str(int(cur/SUB_DIVIDE_INCR)-1)
+            unit_str = str(int(cur / SUB_DIVIDE_INCR) - 1)
             w = fm.horizontalAdvance(unit_str)
-            painter.drawText(pos-2,
-                             allocation.top()+25,
+            painter.drawText(pos - 2,
+                             allocation.top() + 25,
                              w,
                              DIVISIONS_BAR_HEIGHT,
                              Qt.AlignLeft | Qt.AlignTop, unit_str)
