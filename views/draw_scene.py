@@ -1,3 +1,5 @@
+from typing import Union
+
 from PySide6.QtWidgets import (
     QGraphicsScene,
     QGraphicsItemGroup
@@ -18,7 +20,9 @@ from views.bone import Bone
 class DrawScene(QGraphicsScene):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.grid_space = QSize(25, 25)
+        self._grid_space = QSize(25, 25)
+        self._bone: Union[Bone, None] = None
+        self._bone_start_point: Union[QPointF, None] = None
 
     def drawBackground(self, painter, rect):
         super().drawBackground(painter, rect)
@@ -35,15 +39,15 @@ class DrawScene(QGraphicsScene):
         painter.setRenderHints(QPainter.Antialiasing, False)
         painter.fillRect(rect, Qt.white)
 
-        left = math.floor(rect.left() / self.grid_space.width()) * self.grid_space.width()
-        right = math.ceil(rect.right() / self.grid_space.width()) * self.grid_space.width()
-        top = math.floor(rect.top() / self.grid_space.height()) * self.grid_space.height()
-        bottom = math.ceil(rect.bottom() / self.grid_space.height()) * self.grid_space.height()
+        left = math.floor(rect.left() / self._grid_space.width()) * self._grid_space.width()
+        right = math.ceil(rect.right() / self._grid_space.width()) * self._grid_space.width()
+        top = math.floor(rect.top() / self._grid_space.height()) * self._grid_space.height()
+        bottom = math.ceil(rect.bottom() / self._grid_space.height()) * self._grid_space.height()
 
-        for x in range(left, right, int(self.grid_space.width())):
+        for x in range(left, right, int(self._grid_space.width())):
             painter.drawLine(x, top, x, bottom)
 
-        for y in range(top, bottom, int(self.grid_space.height())):
+        for y in range(top, bottom, int(self._grid_space.height())):
             painter.drawLine(left, y, right, y)
 
         p.setStyle(Qt.SolidLine)
@@ -59,10 +63,43 @@ class DrawScene(QGraphicsScene):
         painter.restore()
 
     def mousePressEvent(self, event):
+        super().mousePressEvent(event)
         if event.button() == Qt.LeftButton:
             if self.itemAt(event.scenePos(), QtGui.QTransform()):
                 print("at item")
             else:
-                self.__bone = Bone(event.scenePos(), self)
+                self._bone_start_point = event.scenePos()
+                self._bone = Bone(event.scenePos(), self)
+                print("mouse press")
 
-        super().mousePressEvent(event)
+
+
+    def mouseMoveEvent(self, event):
+        if event.buttons() & Qt.LeftButton:
+            print("mouse move")
+            if self._bone_start_point is not None and self._bone is not None:
+                start_pos = self._bone_start_point
+                cur_pos = event.scenePos()
+                angle = math.atan2((cur_pos.y()-start_pos.y()), (cur_pos.x()-start_pos.x()))*(180/math.pi)
+                print("angle", angle)
+                self._bone.rotation_arrow(angle)
+
+                distance = math.sqrt(math.pow((cur_pos.x() - start_pos.x()), 2) + math.pow((cur_pos.y() - start_pos.y()), 2))
+                if distance > 4.5:
+                    self._bone.stretch_arrow(distance)
+                    self._bone.move_drag_point(cur_pos)
+
+                event.accept()
+                return
+        super().mouseMoveEvent(event)
+        event.ignore()
+
+    def mouseReleaseEvent(self, event):
+        super().mouseReleaseEvent(event)
+
+        if event.button() == Qt.LeftButton:
+            self._bone_start_point = None
+            self._bone = None
+            event.accept()
+            return
+        event.ignore()

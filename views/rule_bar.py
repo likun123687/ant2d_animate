@@ -26,13 +26,13 @@ RULER_SIZE = 16
 
 
 class RuleBar(QtWidgets.QWidget):
-    def __init__(self, direction, view, parent=None):
-        super().__init__(parent)
-        self.__direction = direction
-        self.__view = view
-        self.__face_color = QColor(0xFF, 0xFF, 0xFF)
-        self.__lower = self.__upper = self.__max_size = 0
-        self.__last_pos = QPoint(0, 0)
+    def __init__(self, direction, view):
+        super().__init__(view)
+        self._direction = direction
+        self._view = view
+        self._face_color = QColor(0xFF, 0xFF, 0xFF)
+        self._lower = self._upper = self._max_size = 0
+        self._last_pos = QPoint(0, 0)
 
         font = self.font()
         font.setBold(False)
@@ -40,12 +40,12 @@ class RuleBar(QtWidgets.QWidget):
         self.setFont(font)
 
     def set_range(self, lower, upper, max_size):
-        self.__lower = lower
-        self.__upper = upper
-        self.__max_size = max_size
+        self._lower = lower
+        self._upper = upper
+        self._max_size = max_size
 
     def update_position(self, pos):
-        self.__last_pos = pos
+        self._last_pos = pos
         super().update()
 
     def paintEvent(self, event):
@@ -56,8 +56,8 @@ class RuleBar(QtWidgets.QWidget):
         p.setWidthF(1)
         p.setCosmetic(True)
         painter.setPen(p)
-        painter.fillRect(ruler_rect, self.__face_color)
-        if self.__direction == Qt.Horizontal:
+        painter.fillRect(ruler_rect, self._face_color)
+        if self._direction == Qt.Horizontal:
             painter.drawLine(ruler_rect.bottomLeft(), ruler_rect.bottomRight())
         else:
             painter.drawLine(ruler_rect.topRight(), ruler_rect.bottomRight())
@@ -67,8 +67,8 @@ class RuleBar(QtWidgets.QWidget):
         painter.end()
 
     def draw_ticker(self, painter):
-        lower: float = self.__lower
-        upper: float = self.__upper
+        lower: float = self._lower
+        upper: float = self._upper
         start: float
         end: float
         cur: float
@@ -76,13 +76,13 @@ class RuleBar(QtWidgets.QWidget):
         digit_offset: int
         text_size: int
         pos: int
-        max_size: float = self.__max_size
+        max_size: float = self._max_size
         ruler_metric: SPRulerMetric = ruler_metric_general
         allocation = self.rect()
 
         fm = QFontMetrics(self.font())
         digit_height = fm.height()
-        if self.__direction == Qt.Horizontal:
+        if self._direction == Qt.Horizontal:
             width = allocation.width()
             height = allocation.height()
         else:
@@ -131,13 +131,13 @@ class RuleBar(QtWidgets.QWidget):
                 # for cur in range(start, end, sub_divide_incr) :
                 # pos = int(round(cur-lower) * increment + 1e-12)
                 pos = 0
-                if self.__direction == Qt.Horizontal:
-                    pos = self.__view.mapFromScene(cur, 0).x()
+                if self._direction == Qt.Horizontal:
+                    pos = self._view.mapFromScene(cur, 0).x()
                     rt = QRect(pos, height - length, 1, length)
                     # rt = QRectF(pos,height-length,1,length)
                     painter.drawLine(rt.topLeft(), rt.bottomLeft())
                 else:
-                    pos = self.__view.mapFromScene(0, cur).y()
+                    pos = self._view.mapFromScene(0, cur).y()
                     rt = QRect(height - length, pos, length, 1)
                     # rt = QRectF(height-length,pos,length,1);
                     painter.drawLine(rt.topLeft(), rt.topRight())
@@ -150,7 +150,7 @@ class RuleBar(QtWidgets.QWidget):
                         unit_str = str((int(cur)) / 1000) + "k"
                     else:
                         unit_str = str(int(cur))
-                    if self.__direction == Qt.Horizontal:
+                    if self._direction == Qt.Horizontal:
                         w: int = fm.horizontalAdvance(unit_str)
                         painter.drawText(pos + 2,
                                          allocation.top(),
@@ -178,35 +178,35 @@ class RuleBar(QtWidgets.QWidget):
         bs_height: int
         allocation = self.rect()
         position: float
-        lower = self.__lower
-        upper = self.__upper
-        if self.__direction == Qt.Horizontal:
+        lower = self._lower
+        upper = self._upper
+        if self._direction == Qt.Horizontal:
             width = allocation.width()
             height = allocation.height()
             bs_width = height / 2 + 2
             bs_width != 1
             bs_height = bs_width / 2 + 1
-            position = lower + (upper - lower) * self.__last_pos.x() / width
+            position = lower + (upper - lower) * self._last_pos.x() / width
         else:
             width = allocation.height()
             height = allocation.width()
             bs_height = width / 2 + 2
             bs_height != 1
             bs_width = bs_height / 2 + 1
-            position = lower + (upper - lower) * self.__last_pos.y() / height
+            position = lower + (upper - lower) * self._last_pos.y() / height
 
         if bs_width > 0 and bs_height > 0:
             increment: float = 0.0
-            if self.__direction == Qt.Horizontal:
+            if self._direction == Qt.Horizontal:
                 increment = width / (upper - lower)
                 x = round((position - lower) * increment) + bs_width / 2 - 1
                 y = (height + bs_height) / 2
-                painter.drawLine(self.__last_pos.x(), 0, self.__last_pos.x(), height)
+                painter.drawLine(self._last_pos.x(), 0, self._last_pos.x(), height)
             else:
                 increment = height / (upper - lower)
                 x = (width + bs_width) / 2;
                 y = round((position - lower) * increment) + (bs_height) / 2 - 1
-                painter.drawLine(0, self.__last_pos.y(), width, self.__last_pos.y())
+                painter.drawLine(0, self._last_pos.y(), width, self._last_pos.y())
 
 
 class CornerBox(QtWidgets.QWidget):
