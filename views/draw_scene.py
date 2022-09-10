@@ -14,7 +14,7 @@ from PySide6.QtGui import QPalette, QColor, QIcon, QBrush, QPen, QPainter
 from PySide6 import QtGui
 
 import math
-from views.bone import Bone
+from views.bone import Bone, RING_RADIUS, RING_BORDER_WIDTH
 
 
 class DrawScene(QGraphicsScene):
@@ -85,7 +85,7 @@ class DrawScene(QGraphicsScene):
                 self._bone.rotation_arrow(angle)
 
                 distance = math.sqrt(math.pow((cur_pos.x() - start_pos.x()), 2) + math.pow((cur_pos.y() - start_pos.y()), 2))
-                if distance > 4.5:
+                if distance > RING_RADIUS - RING_BORDER_WIDTH/2:
                     self._bone.stretch_arrow(distance)
                     self._bone.move_drag_point(cur_pos)
 

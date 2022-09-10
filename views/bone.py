@@ -9,6 +9,10 @@ from PySide6.QtWidgets import (
 from PySide6.QtGui import QPalette, QColor, QIcon, QBrush, QPen, QPolygonF
 from PySide6.QtCore import Qt, QSize, QRectF, QPointF
 
+RING_BORDER_WIDTH = 1
+RING_RADIUS = 5
+DRAG_POINT_BORDER_WIDTH = 0.2
+DRAG_POINT_RADIUS = 0.5
 
 class Ring(QGraphicsEllipseItem):
     def __init__(self, rect, parent=None):
@@ -87,11 +91,11 @@ class Bone(QGraphicsItemGroup):
         # scene.addItem(line1)
 
         # 圆圈
-        self._ring = Ring(QRectF(-5, -5, 10, 10))
+        self._ring = Ring(QRectF(-RING_RADIUS, -RING_RADIUS, RING_RADIUS*2, RING_RADIUS*2))
         self._ring.setPos(position.x(), position.y())
 
         # Define the pen (line)
-        pen.setWidthF(1)
+        pen.setWidthF(RING_BORDER_WIDTH)
 
         self._ring.setPen(pen)
 
@@ -102,7 +106,7 @@ class Bone(QGraphicsItemGroup):
         # 箭头
         p0 = QPointF(0, 0)
         p1 = QPointF(1, -1)
-        p2 = QPointF(4.5, 0)
+        p2 = QPointF(RING_RADIUS-RING_BORDER_WIDTH/2, 0)
         p3 = QPointF(1, 1)
         arrow_polygon = QPolygonF([p0, p1, p2, p3])
         self._arrow = Arrow(arrow_polygon)
@@ -116,10 +120,10 @@ class Bone(QGraphicsItemGroup):
         # self.addToGroup(self.__circle)
 
         # 拉伸点
-        self._drag_point = DragPoint(QRectF(-0.25, -0.25, 0.5, 0.5), self._arrow)
-        self._drag_point.setPos(4.5, 0)
+        self._drag_point = DragPoint(QRectF(-DRAG_POINT_RADIUS/2, -DRAG_POINT_RADIUS/2, DRAG_POINT_RADIUS, DRAG_POINT_RADIUS), self._arrow)
+        self._drag_point.setPos(RING_RADIUS-RING_BORDER_WIDTH/2, 0)
         pen = QPen(Qt.red)
-        pen.setWidthF(0.2)
+        pen.setWidthF(DRAG_POINT_BORDER_WIDTH)
         self._drag_point.setPen(pen)
 
     def hoverEnterEvent(self, event:QGraphicsSceneHoverEvent) -> None:
@@ -147,9 +151,9 @@ class Bone(QGraphicsItemGroup):
             p2 = QPointF(distance, 0)
             p3 = QPointF(1, 1)
 
-            if distance > 10:
-                p1 = QPointF(9, -4.5)
-                p3 = QPointF(9, 4.5)
+            if distance > RING_RADIUS*2:
+                p1 = QPointF(RING_RADIUS*2, -(RING_RADIUS - RING_BORDER_WIDTH/2))
+                p3 = QPointF(RING_RADIUS*2, RING_RADIUS - RING_BORDER_WIDTH/2)
 
             arrow_polygon = QPolygonF([p0, p1, p2, p3])
             self._arrow.setPolygon(arrow_polygon)
