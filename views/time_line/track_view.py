@@ -4,7 +4,7 @@ from typing import Union
 from PySide6.QtGui import QIcon, QBrush, Qt, QPalette, QColor, QPen, QPainter
 from PySide6.QtWidgets import QGraphicsView, QTreeWidget, QTreeWidgetItem, QGraphicsScene, QWidget
 
-from views.time_line.common import SUB_DIVIDE_INCR, GRID_SPACE
+from views.time_line.common import SUB_DIVIDE_INC, GRID_SPACE
 from views.time_line.divisions_bar import DivisionsBar
 from views.time_line.left_panel import TrackTreeCtrl
 
