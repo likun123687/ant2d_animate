@@ -14,6 +14,7 @@ RING_RADIUS = 5
 DRAG_POINT_BORDER_WIDTH = 0.2
 DRAG_POINT_RADIUS = 0.5
 
+
 class Ring(QGraphicsEllipseItem):
     def __init__(self, rect, parent=None):
         super().__init__(rect, parent)
@@ -91,7 +92,7 @@ class Bone(QGraphicsItemGroup):
         # scene.addItem(line1)
 
         # 圆圈
-        self._ring = Ring(QRectF(-RING_RADIUS, -RING_RADIUS, RING_RADIUS*2, RING_RADIUS*2))
+        self._ring = Ring(QRectF(-RING_RADIUS, -RING_RADIUS, RING_RADIUS * 2, RING_RADIUS * 2))
         self._ring.setPos(position.x(), position.y())
 
         # Define the pen (line)
@@ -101,12 +102,13 @@ class Bone(QGraphicsItemGroup):
 
         # rect.setPen(pen)
 
-        scene.addItem(self._ring)
+        # scene.addItem(self._ring)
+        self.addToGroup(self._ring)
 
         # 箭头
         p0 = QPointF(0, 0)
         p1 = QPointF(1, -1)
-        p2 = QPointF(RING_RADIUS-RING_BORDER_WIDTH/2, 0)
+        p2 = QPointF(RING_RADIUS - RING_BORDER_WIDTH / 2, 0)
         p3 = QPointF(1, 1)
         arrow_polygon = QPolygonF([p0, p1, p2, p3])
         self._arrow = Arrow(arrow_polygon)
@@ -116,33 +118,36 @@ class Bone(QGraphicsItemGroup):
         pen.setColor(Qt.black)
         self._arrow.setPen(pen)
 
-        scene.addItem(self._arrow)
-        # self.addToGroup(self.__circle)
+        #scene.addItem(self._arrow)
+        self.addToGroup(self._arrow)
 
         # 拉伸点
-        self._drag_point = DragPoint(QRectF(-DRAG_POINT_RADIUS/2, -DRAG_POINT_RADIUS/2, DRAG_POINT_RADIUS, DRAG_POINT_RADIUS), self._arrow)
-        self._drag_point.setPos(RING_RADIUS-RING_BORDER_WIDTH/2, 0)
+        self._drag_point = DragPoint(
+            QRectF(-DRAG_POINT_RADIUS / 2, -DRAG_POINT_RADIUS / 2, DRAG_POINT_RADIUS, DRAG_POINT_RADIUS), self._arrow)
+        self._drag_point.setPos(RING_RADIUS - RING_BORDER_WIDTH / 2, 0)
         pen = QPen(Qt.red)
         pen.setWidthF(DRAG_POINT_BORDER_WIDTH)
         self._drag_point.setPen(pen)
 
-    def hoverEnterEvent(self, event:QGraphicsSceneHoverEvent) -> None:
+        scene.addItem(self)
+
+    def hoverEnterEvent(self, event: QGraphicsSceneHoverEvent) -> None:
         print("hover enter", self)
-    def hoverLeaveEvent(self, event:QGraphicsSceneHoverEvent) -> None:
+
+    def hoverLeaveEvent(self, event: QGraphicsSceneHoverEvent) -> None:
         print("hover leave", self)
 
     def rotation_arrow(self, angle):
         if self._arrow is not None:
             self._arrow.setRotation(angle)
 
-    def move_drag_point(self, scene_pos:QPointF)->None:
+    def move_drag_point(self, scene_pos: QPointF) -> None:
         """
         move drag point
         :param pos: drag point position
         """
         pos = self._drag_point.mapFromScene(scene_pos)
         self._drag_point.setPos(pos.x(), pos.y())
-
 
     def stretch_arrow(self, distance):
         if self._arrow is not None:
@@ -151,9 +156,16 @@ class Bone(QGraphicsItemGroup):
             p2 = QPointF(distance, 0)
             p3 = QPointF(1, 1)
 
-            if distance > RING_RADIUS*2:
-                p1 = QPointF(RING_RADIUS*2, -(RING_RADIUS - RING_BORDER_WIDTH/2))
-                p3 = QPointF(RING_RADIUS*2, RING_RADIUS - RING_BORDER_WIDTH/2)
+            if distance > RING_RADIUS * 2:
+                p1 = QPointF(RING_RADIUS * 2, -(RING_RADIUS - RING_BORDER_WIDTH / 2))
+                p3 = QPointF(RING_RADIUS * 2, RING_RADIUS - RING_BORDER_WIDTH / 2)
 
             arrow_polygon = QPolygonF([p0, p1, p2, p3])
             self._arrow.setPolygon(arrow_polygon)
+
+    def boundingRect(self) -> QRectF:
+        """
+        https://stackoverflow.com/questions/49163751/qgraphicsitemgroupboundingrect-not-updating
+        """
+        return self.childrenBoundingRect()
+

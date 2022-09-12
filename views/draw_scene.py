@@ -72,23 +72,21 @@ class DrawScene(QGraphicsScene):
                 self._bone = Bone(event.scenePos(), self)
                 print("mouse press")
 
-
-
     def mouseMoveEvent(self, event):
         if event.buttons() & Qt.LeftButton:
             print("mouse move")
             if self._bone_start_point is not None and self._bone is not None:
                 start_pos = self._bone_start_point
                 cur_pos = event.scenePos()
-                angle = math.atan2((cur_pos.y()-start_pos.y()), (cur_pos.x()-start_pos.x()))*(180/math.pi)
+                angle = math.atan2((cur_pos.y() - start_pos.y()), (cur_pos.x() - start_pos.x())) * (180 / math.pi)
                 print("angle", angle)
                 self._bone.rotation_arrow(angle)
 
-                distance = math.sqrt(math.pow((cur_pos.x() - start_pos.x()), 2) + math.pow((cur_pos.y() - start_pos.y()), 2))
-                if distance > RING_RADIUS - RING_BORDER_WIDTH/2:
+                distance = math.sqrt(
+                    math.pow((cur_pos.x() - start_pos.x()), 2) + math.pow((cur_pos.y() - start_pos.y()), 2))
+                if distance > RING_RADIUS - RING_BORDER_WIDTH / 2:
                     self._bone.stretch_arrow(distance)
                     self._bone.move_drag_point(cur_pos)
-
                 event.accept()
                 return
         super().mouseMoveEvent(event)
