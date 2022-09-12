@@ -10,6 +10,7 @@ from PySide6.QtGui import QPalette, QColor, QIcon, QBrush, QPen
 import sys
 from views.draw_view import DrawView
 from views.draw_scene import DrawScene
+from views.rule_bar import RuleBar, CornerBox
 
 
 class CanvasTabItem(QtWidgets.QWidget):
@@ -47,10 +48,23 @@ class CanvasTabItem(QtWidgets.QWidget):
         self.scene.addItem(line1)
 
         view = DrawView(self.scene)
+
+        # h_ruler = RuleBar(Qt.Horizontal, view)
+        # v_ruler = RuleBar(Qt.Vertical, view)
+        # box = CornerBox(view)
+        view.h_ruler = RuleBar(Qt.Horizontal, view)
+        assert view.h_ruler is not None
+
+        view.v_ruler = RuleBar(Qt.Vertical, view)
+        assert view.v_ruler is not None
+
+        view.box = CornerBox(view)
+        assert view.box is not None
+
         # main_window.view = view
-        self.stacklayout = QtWidgets.QStackedLayout()
-        self.stacklayout.addWidget(view)
-        self.setLayout(self.stacklayout)
+        self.stack_layout = QtWidgets.QStackedLayout()
+        self.stack_layout.addWidget(view)
+        self.setLayout(self.stack_layout)
         # self.setStyleSheet("background-color: black")
 
         # 切换armature和animation

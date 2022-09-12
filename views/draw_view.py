@@ -1,3 +1,5 @@
+from typing import Union
+
 from views.rule_bar import RuleBar, CornerBox, RULER_SIZE
 from PySide6.QtCore import Qt, QPoint, QEvent
 from PySide6.QtGui import QPalette, QColor, QIcon, QBrush, QPen, QPainter, QWheelEvent, QMouseEvent
@@ -14,15 +16,15 @@ from PySide6.QtWidgets import (
 
 
 class DrawView(QGraphicsView):
-    def __init__(self, scene):
+    def __init__(self, scene, h_ruler=None, v_ruler=None, box=None):
         super().__init__(scene)
-        self.__h_ruler = RuleBar(Qt.Horizontal, self, self)
-        self.__v_ruler = RuleBar(Qt.Vertical, self, self)
-        self.__box = CornerBox(self)
+        self._h_ruler = h_ruler
+        self._v_ruler = v_ruler
+        self._box = box
         self.setAttribute(Qt.WA_DeleteOnClose)
-        self.__pan = False
-        self.__pan_start_x = 0
-        self.__pan_start_y = 0
+        self._pan = False
+        self._pan_start_x = 0
+        self._pan_start_y = 0
         # self.viewport().installEventFilter(self)
         # self.setDragMode(QGraphicsView.ScrollHandDrag)           #启用拖动
 
@@ -34,31 +36,40 @@ class DrawView(QGraphicsView):
         self.scale(1 / 1.2, 1 / 1.2)
         self.update_ruler()
 
-    def mouseMoveEvent(self, event):
-        super().mouseMoveEvent(event)
-        if self.__pan:
-            self.horizontalScrollBar().setValue(self.horizontalScrollBar().value() - (event.x() - self.__pan_start_x))
-            self.verticalScrollBar().setValue(self.verticalScrollBar().value() - (event.y() - self.__pan_start_y))
-            self.__pan_start_x = event.x()
-            self.__pan_start_y = event.y()
-            event.accept()
+    @property
+    def h_ruler(self) -> Union[RuleBar, None]:
+        return self._h_ruler
 
-        event.ignore()
+    @h_ruler.setter
+    def h_ruler(self, value: RuleBar):
+        self._h_ruler = value
 
-        # ps = self.mapToScene(event.pos())
-        self.__h_ruler.update_position(event.pos())
-        self.__v_ruler.update_position(event.pos())
+    @property
+    def v_ruler(self) -> Union[RuleBar, None]:
+        return self._v_ruler
+
+    @v_ruler.setter
+    def v_ruler(self, value: RuleBar):
+        self._v_ruler = value
+
+    @property
+    def box(self) -> Union[CornerBox, None]:
+        return self._box
+
+    @box.setter
+    def box(self, value: CornerBox):
+        self._box = value
 
     def resizeEvent(self, event):
         super().resizeEvent(event)
         self.setViewportMargins(RULER_SIZE - 1, RULER_SIZE - 1, 0, 0)
         # self.setViewportMargins(300,0,0,0)
-        self.__h_ruler.resize(self.size().width() - RULER_SIZE - 1, RULER_SIZE)
-        self.__h_ruler.move(RULER_SIZE, 0)
-        self.__v_ruler.resize(RULER_SIZE, self.size().height() - RULER_SIZE - 1)
-        self.__v_ruler.move(0, RULER_SIZE)
-        self.__box.resize(RULER_SIZE, RULER_SIZE)
-        self.__box.move(0, 0)
+        self._h_ruler.resize(self.size().width() - RULER_SIZE - 1, RULER_SIZE)
+        self._h_ruler.move(RULER_SIZE, 0)
+        self._v_ruler.resize(RULER_SIZE, self.size().height() - RULER_SIZE - 1)
+        self._v_ruler.move(0, RULER_SIZE)
+        self._box.resize(RULER_SIZE, RULER_SIZE)
+        self._box.move(0, 0)
         self.update_ruler()
 
     def scrollContentsBy(self, dx, dy):
@@ -76,14 +87,14 @@ class DrawView(QGraphicsView):
         upper_x = factor * (view_box.right() - RULER_SIZE - offset.x())
         # upper_x = factor * (view_box.right() - offset.x())
 
-        self.__h_ruler.set_range(lower_x, upper_x, upper_x - lower_x)
-        self.__h_ruler.update()
+        self._h_ruler.set_range(lower_x, upper_x, upper_x - lower_x)
+        self._h_ruler.update()
 
         lower_y = factor * (view_box.top() - offset.y()) * 1
         upper_y = factor * (view_box.bottom() - RULER_SIZE - offset.y()) * 1
         # upper_y = factor * (view_box.bottom() - offset.y()) * 1
-        self.__v_ruler.set_range(lower_y, upper_y, upper_y - lower_y)
-        self.__v_ruler.update()
+        self._v_ruler.set_range(lower_y, upper_y, upper_y - lower_y)
+        self._v_ruler.update()
 
     def wheelEvent(self, event: QWheelEvent) -> None:
         cur_point = event.position()
@@ -113,9 +124,9 @@ class DrawView(QGraphicsView):
 
     def mousePressEvent(self, event):
         if event.button() == Qt.RightButton:
-            self.__pan = True
-            self.__pan_start_x = event.x()
-            self.__pan_start_y = event.y()
+            self._pan = True
+            self._pan_start_x = event.x()
+            self._pan_start_y = event.y()
             self.setCursor(Qt.ClosedHandCursor)
             event.accept()
             return
@@ -125,9 +136,24 @@ class DrawView(QGraphicsView):
 
     def mouseReleaseEvent(self, event):
         if event.button() == Qt.RightButton:
-            self.__pan = False
+            self._pan = False
             self.setCursor(Qt.ArrowCursor)
             event.accept()
             return
         super().mouseReleaseEvent(event)
         event.ignore()
+
+    def mouseMoveEvent(self, event):
+        super().mouseMoveEvent(event)
+        if self._pan:
+            self.horizontalScrollBar().setValue(self.horizontalScrollBar().value() - (event.x() - self._pan_start_x))
+            self.verticalScrollBar().setValue(self.verticalScrollBar().value() - (event.y() - self._pan_start_y))
+            self._pan_start_x = event.x()
+            self._pan_start_y = event.y()
+            event.accept()
+
+        event.ignore()
+
+        # ps = self.mapToScene(event.pos())
+        self._h_ruler.update_position(event.pos())
+        self._v_ruler.update_position(event.pos())

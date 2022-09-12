@@ -12,7 +12,7 @@ class TimeLineView(QWidget):
         super().__init__(parent)
         self._left_panel: LeftPanel = LeftPanel(self)
 
-        self._scene: TrackScene = TrackScene(0, 0, 3000, 1500)
+        self._scene: TrackScene = TrackScene(0, 0, 1000, 800)
 
         self._graphics_view: TrackGraphicsView = TrackGraphicsView(self._scene, self)
         self._graphics_view.setAlignment(Qt.AlignTop | Qt.AlignLeft)

@@ -26,8 +26,8 @@ RULER_SIZE = 16
 
 
 class RuleBar(QtWidgets.QWidget):
-    def __init__(self, direction, view, parent=None):
-        super().__init__(parent)
+    def __init__(self, direction, view):
+        super().__init__(view)
         self._direction = direction
         self._view = view
         self._face_color = QColor(0xFF, 0xFF, 0xFF)
