@@ -2,7 +2,7 @@ import sys
 
 from PySide6 import QtWidgets
 from PySide6.QtCore import Qt, QSize
-from PySide6.QtGui import QAction, QIcon
+from PySide6.QtGui import QAction, QIcon, QPainterPath
 from PySide6.QtGui import QPalette, QColor
 from PySide6.QtGui import QPen
 from PySide6.QtWidgets import QApplication, QMainWindow, QWidget, QStackedLayout, QToolBar, QStatusBar, \
@@ -10,32 +10,39 @@ from PySide6.QtWidgets import QApplication, QMainWindow, QWidget, QStackedLayout
 from PySide6.QtWidgets import QGraphicsScene, QGraphicsView, QGraphicsRectItem, QGraphicsLineItem, QGraphicsItem
 
 
-# class AAA(QGraphicsRectItem):
-#     def __init__(self, x, y, width, height, parent=None):
-#         super().__init__(x, y, width, height, parent)
-#         self.setAcceptHoverEvents(True)
-#
-#     def hoverEnterEvent(self, event) -> None:
-#         print("hover enter")
-#
-#     def hoverLeaveEvent(self, event) -> None:
-#         print("hover leave")
-#
-#     # def setPos(self, x, y):
-#     #     rect = self.boundingRect()
-#     #     offset = rect.center()
-#     #     super().moveBy(x - offset.x(), y - offset.y())
+class AAA(QGraphicsRectItem):
+    def __init__(self, x, y, width, height, parent=None):
+        super().__init__(x, y, width, height, parent)
+        self.setAcceptHoverEvents(True)
+
+    def hoverEnterEvent(self, event) -> None:
+        print("hover enter")
+
+    def hoverLeaveEvent(self, event) -> None:
+        print("hover leave")
+
+    # def setPos(self, x, y):
+    #     rect = self.boundingRect()
+    #     offset = rect.center()
+    #     super().moveBy(x - offset.x(), y - offset.y())
+
 
 class BBB(QGraphicsItemGroup):
     def __init__(self, parent=None):
         super().__init__(parent)
         self.setAcceptHoverEvents(True)
+        # self.setFlags(QGraphicsItem.ItemContainsChildrenInShape | QGraphicsItem.ItemIsSelectable)
 
     def hoverEnterEvent(self, event) -> None:
         print("hover item group enter")
 
     def hoverLeaveEvent(self, event) -> None:
         print("hover item group leave\n")
+
+    def shape(self) -> QPainterPath:
+        items = self.childItems()
+        return items[0].shape()
+
 
 class CustomQGraphicsView(QGraphicsView):
     def __init__(self, parent=None):
@@ -49,6 +56,7 @@ class CustomQGraphicsView(QGraphicsView):
 
     def mouseMoveEvent(self, event):
         super().mouseMoveEvent(event)
+
 
 class CustomScene(QGraphicsScene):
     def __init__(self, *args, **kwargs):
@@ -119,6 +127,10 @@ class MainWindow(QMainWindow):
         # pen.setWidth(10)
         # rect.setPen(pen)
 
+        self.rect.setRotation(30)
+        # print(self.rect.shape())
+        # print(self.rect.boundingRect())
+        print("aaaa", self.rect.mapRectToScene(self.rect.boundingRect()))
         self.scene.addItem(self.group)
         # self.scene.addItem(self.rect1)
         # self.scene.addItem(self.rect2)
