@@ -14,15 +14,19 @@ from PySide6.QtGui import QPalette, QColor, QIcon, QBrush, QPen, QPainter
 from PySide6 import QtGui
 
 import math
-from views.bone import Bone, RING_RADIUS, RING_BORDER_WIDTH
+from views.bone import Bone, RING_RADIUS, RING_BORDER_WIDTH, Ring, Arrow
+from views.connect_arrow import ConnectArrow
 
 
 class DrawScene(QGraphicsScene):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self._grid_space = QSize(25, 25)
-        self._bone: Union[Bone, None] = None
+        self._cur_bone: Union[Bone, None] = None
         self._bone_start_point: Union[QPointF, None] = None
+        self._parent_bone: Union[Bone, None] = None
+        self._bone_list = []
+        self._total_rotation = 0
 
     def drawBackground(self, painter, rect):
         super().drawBackground(painter, rect)
@@ -65,28 +69,42 @@ class DrawScene(QGraphicsScene):
     def mousePressEvent(self, event):
         super().mousePressEvent(event)
         if event.button() == Qt.LeftButton:
-            if self.itemAt(event.scenePos(), QtGui.QTransform()):
-                print("at item")
+            item = self.itemAt(event.scenePos(), QtGui.QTransform())
+            if item is not None:
+                #print("at item", item)
+                if isinstance(item, Bone):
+                    item.clicked()
+                    print(item.arrow_angle_to_scene)
+                elif isinstance(item, Arrow):
+                    item.parentItem().clicked()
             else:
                 self._bone_start_point = event.scenePos()
-                self._bone = Bone(event.scenePos(), self)
-                print("mouse press")
+                parent = None
+
+                if self._parent_bone is not None:
+                    parent = self._parent_bone.arrow
+
+                self._cur_bone = Bone(event.scenePos(), self, parent)
+                if parent is not None:
+                    # self.connect_arrow = ConnectArrow(self._parent_bone._tail_point_pos, parent.mapFromScene(event.scenePos()), parent)
+                    self._cur_bone.connect_arrow = ConnectArrow(self._parent_bone._tail_point_pos, parent.mapFromScene(event.scenePos()), parent)
+
+                self._bone_list.append(self._cur_bone)
+                self._add_bone = True
 
     def mouseMoveEvent(self, event):
         if event.buttons() & Qt.LeftButton:
-            print("mouse move")
-            if self._bone_start_point is not None and self._bone is not None:
+            if self._bone_start_point is not None and self._cur_bone is not None:
                 start_pos = self._bone_start_point
                 cur_pos = event.scenePos()
+                distance = math.sqrt(math.pow((cur_pos.x() - start_pos.x()), 2) + math.pow((cur_pos.y() - start_pos.y()), 2))
+                print("distance", distance)
                 angle = math.atan2((cur_pos.y() - start_pos.y()), (cur_pos.x() - start_pos.x())) * (180 / math.pi)
-                print("angle", angle)
-                self._bone.rotation_arrow(angle)
+                self._cur_bone.rotation_arrow(angle, distance)
 
-                distance = math.sqrt(
-                    math.pow((cur_pos.x() - start_pos.x()), 2) + math.pow((cur_pos.y() - start_pos.y()), 2))
                 if distance > RING_RADIUS - RING_BORDER_WIDTH / 2:
-                    self._bone.stretch_arrow(distance)
-                    self._bone.move_drag_point(cur_pos)
+                    self._cur_bone.stretch_arrow(distance)
+                    self._cur_bone.move_drag_point(cur_pos)
                 event.accept()
                 return
         super().mouseMoveEvent(event)
@@ -96,8 +114,12 @@ class DrawScene(QGraphicsScene):
         super().mouseReleaseEvent(event)
 
         if event.button() == Qt.LeftButton:
-            self._bone_start_point = None
-            self._bone = None
+            if self._add_bone:
+                self._parent_bone = self._cur_bone
+
+                self._bone_start_point = None
+                self._cur_bone = None
+                self._add_bone = False
             event.accept()
             return
         event.ignore()
