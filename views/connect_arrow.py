@@ -5,14 +5,17 @@ from PySide6.QtGui import QPen, Qt
 from PySide6.QtWidgets import QGraphicsItemGroup, QGraphicsLineItem
 
 
-def rotate_point(point:QPointF,rotate_point:QPointF, angle):
+def rotate_point(point: QPointF, rotate_point: QPointF, angle):
     angle = math.radians(angle)
-    x0 = (point.x() - rotate_point.x()) * math.cos(angle) - (point.y() - rotate_point.y()) * math.sin(angle) + rotate_point.x()
-    y0 = (point.x() - rotate_point.x()) * math.sin(angle) + (point.y() - rotate_point.y()) * math.cos(angle) + rotate_point.y()
+    x0 = (point.x() - rotate_point.x()) * math.cos(angle) - (point.y() - rotate_point.y()) * math.sin(
+        angle) + rotate_point.x()
+    y0 = (point.x() - rotate_point.x()) * math.sin(angle) + (point.y() - rotate_point.y()) * math.cos(
+        angle) + rotate_point.y()
     return QPointF(x0, y0)
 
+
 class ConnectArrow(QGraphicsLineItem):
-    def __init__(self, start_point:QPointF, end_point:QPointF, parent:QGraphicsLineItem):
+    def __init__(self, start_point: QPointF, end_point: QPointF, parent: QGraphicsLineItem):
         """
         :param start_point: 都是local pos
         :param end_point: 都是local pos
@@ -38,7 +41,7 @@ class ConnectArrow(QGraphicsLineItem):
         self._down_line.setLine(p2.x(), p2.y(), p3.x(), p3.y())
         self._down_line.setPen(pen)
 
-    def update_point(self, start_point:QPointF, end_point:QPointF):
+    def update_point(self, start_point: QPointF, end_point: QPointF):
         self._start_point = start_point
         self._end_point = end_point
 
@@ -50,8 +53,10 @@ class ConnectArrow(QGraphicsLineItem):
         scene_end_point = parent.mapToScene(self._end_point)
 
         distance = math.sqrt(
-            math.pow((scene_start_point.x() - scene_end_point.x()), 2) + math.pow((scene_start_point.y() - scene_end_point.y()), 2))
-        angle = math.atan2((scene_end_point.y() - scene_start_point.y()), (scene_end_point.x() - scene_start_point.x())) * (180 / math.pi)
+            math.pow((scene_start_point.x() - scene_end_point.x()), 2) + math.pow(
+                (scene_start_point.y() - scene_end_point.y()), 2))
+        angle = math.atan2((scene_end_point.y() - scene_start_point.y()),
+                           (scene_end_point.x() - scene_start_point.x())) * (180 / math.pi)
 
         new_scene_end_point = rotate_point(scene_end_point, scene_start_point, -angle)
 
@@ -69,7 +74,7 @@ class ConnectArrow(QGraphicsLineItem):
 
         return p1, p2, p3
 
-    def update_line(self, start_point:QPointF, end_point:QPointF):
+    def update_line(self, start_point: QPointF, end_point: QPointF):
         p1, p2, p3 = self.update_point(start_point, end_point)
         self.setLine(self._start_point.x(), self._start_point.y(), self._end_point.x(), self._end_point.y())
         self._up_line.setLine(p1.x(), p1.y(), p3.x(), p3.y())

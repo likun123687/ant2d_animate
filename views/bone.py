@@ -12,6 +12,7 @@ from PySide6.QtWidgets import (
 from PySide6.QtGui import QPalette, QColor, QIcon, QBrush, QPen, QPolygonF, QPainterPath
 from PySide6.QtCore import Qt, QSize, QRectF, QPointF
 
+from views.bone_handle import BoneHandle, HANDLER_RADIUS
 from views.connect_arrow import ConnectArrow
 
 RING_BORDER_WIDTH = 1
@@ -24,7 +25,7 @@ class Ring(QGraphicsEllipseItem):
     def __init__(self, rect, parent=None):
         super().__init__(rect, parent)
         print("parent bone", parent)
-        self.setFlags(QGraphicsItem.ItemIsMovable|QGraphicsItem.ItemSendsGeometryChanges)
+        self.setFlags(QGraphicsItem.ItemIsMovable | QGraphicsItem.ItemSendsGeometryChanges | QGraphicsItem.ItemSendsScenePositionChanges)
         self.setAcceptHoverEvents(True)
         # self.__radius = radius
 
@@ -69,19 +70,19 @@ class Arrow(QGraphicsPolygonItem):
         self.setAcceptHoverEvents(True)
         self.setFlags(QGraphicsItem.ItemSendsGeometryChanges)
 
-
     def itemChange(self, change, value):
         if change == QGraphicsItem.ItemRotationChange:
-            #print("arrow angle change", value)
+            # print("arrow angle change", value)
             angle = math.radians(value)
             x = math.cos(angle) * 5
             y = math.sin(angle) * 5
-            #print("arrow now pos", x , y)
+            # print("arrow now pos", x , y)
 
         return super().itemChange(change, value)
 
+
 class Bone(Ring):
-    def __init__(self, position, scene, parent:Arrow=None):
+    def __init__(self, position, scene, parent: Arrow = None):
         super().__init__(QRectF(-RING_RADIUS, -RING_RADIUS, RING_RADIUS * 2, RING_RADIUS * 2), parent)
         self.setAcceptHoverEvents(True)
 
@@ -100,7 +101,7 @@ class Bone(Ring):
         # scene.addItem(line1)
 
         # 圆圈
-        #self._ring = Ring(QRectF(-RING_RADIUS, -RING_RADIUS, RING_RADIUS * 2, RING_RADIUS * 2))
+        # self._ring = Ring(QRectF(-RING_RADIUS, -RING_RADIUS, RING_RADIUS * 2, RING_RADIUS * 2))
         if parent is not None:
             position = parent.mapFromScene(position)
         else:
@@ -129,7 +130,7 @@ class Bone(Ring):
         pen.setColor(Qt.black)
         self._arrow.setPen(pen)
 
-        #scene.addItem(self._arrow)
+        # scene.addItem(self._arrow)
 
         # 拉伸点
         self._drag_point = DragPoint(
@@ -143,11 +144,12 @@ class Bone(Ring):
         # 1 移动
         # 2 旋转
         # 3 伸缩
-        self._head_point_pos:Union[QPointF, None] = None
-        self._tail_point_pos:Union[QPointF, None] = QPointF(0, 0)
+        self._head_point_pos: Union[QPointF, None] = None
+        self._tail_point_pos: Union[QPointF, None] = QPointF(0, 0)
         self._arrow_angle_to_scene = 0
-        self._connect_arrow:Union[ConnectArrow, None] = None
+        self._connect_arrow: Union[ConnectArrow, None] = None
         print("666666", self._connect_arrow)
+        self._handle: Union[BoneHandle, None] = None
 
         if parent is not None:
             print("ppppp", parent.parentItem())
@@ -206,6 +208,7 @@ class Bone(Ring):
 
     def hoverEnterEvent(self, event: QGraphicsSceneHoverEvent) -> None:
         self.hover_enter_process()
+
     def hoverLeaveEvent(self, event: QGraphicsSceneHoverEvent) -> None:
         self.hover_leave_process()
 
@@ -223,11 +226,11 @@ class Bone(Ring):
         self._arrow.update()
 
     def itemChange(self, change, value):
-        parent_bone = self.parent_bone()
-        if parent_bone is None:
-            return super().itemChange(change, value)
-
         if change == QGraphicsItem.ItemPositionHasChanged:
+            parent_bone = self.parent_bone()
+            if parent_bone is None:
+                return super().itemChange(change, value)
+
             print("bone pos change", value)
             try:
                 if self._connect_arrow is not None:
@@ -237,6 +240,12 @@ class Bone(Ring):
 
         elif change == QGraphicsItem.ItemRotationChange:
             print("bone pos change", value)
+        elif change == QGraphicsItem.ItemScenePositionHasChanged:
+            # print("bone scene pos change", self._handle, value)
+            print("scene pos11", self._handle.pos())
+            print("pos", value)
+            self._handle.setPos(value.x(), value.y())
+            print("scene pos22", self._handle.pos())
 
         return super().itemChange(change, value)
 
@@ -258,7 +267,16 @@ class Bone(Ring):
     @property
     def connect_arrow(self):
         return self._connect_arrow
+
     @connect_arrow.setter
     def connect_arrow(self, value: ConnectArrow):
         print("set connect_arrow")
         self._connect_arrow = value
+
+    @property
+    def handler(self):
+        return self._handle
+
+    @handler.setter
+    def handler(self, value: BoneHandle):
+        self._handle = value

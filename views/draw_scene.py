@@ -15,7 +15,9 @@ from PySide6 import QtGui
 
 import math
 from views.bone import Bone, RING_RADIUS, RING_BORDER_WIDTH, Ring, Arrow
+from views.bone_handle import BoneHandle, HANDLER_RADIUS
 from views.connect_arrow import ConnectArrow
+from views.texture_item import TextureItem
 
 
 class DrawScene(QGraphicsScene):
@@ -27,6 +29,7 @@ class DrawScene(QGraphicsScene):
         self._parent_bone: Union[Bone, None] = None
         self._bone_list = []
         self._total_rotation = 0
+        self._add_bone = False
 
     def drawBackground(self, painter, rect):
         super().drawBackground(painter, rect)
@@ -71,13 +74,18 @@ class DrawScene(QGraphicsScene):
         if event.button() == Qt.LeftButton:
             item = self.itemAt(event.scenePos(), QtGui.QTransform())
             if item is not None:
-                #print("at item", item)
+                # print("at item", item)
                 if isinstance(item, Bone):
                     item.clicked()
                     print(item.arrow_angle_to_scene)
                 elif isinstance(item, Arrow):
                     item.parentItem().clicked()
             else:
+                # self.text_img = TextureItem(event.scenePos())
+                # self.text_img.setRotation(45)
+                # self.addItem(self.text_img)
+                # return
+
                 self._bone_start_point = event.scenePos()
                 parent = None
 
@@ -87,7 +95,13 @@ class DrawScene(QGraphicsScene):
                 self._cur_bone = Bone(event.scenePos(), self, parent)
                 if parent is not None:
                     # self.connect_arrow = ConnectArrow(self._parent_bone._tail_point_pos, parent.mapFromScene(event.scenePos()), parent)
-                    self._cur_bone.connect_arrow = ConnectArrow(self._parent_bone._tail_point_pos, parent.mapFromScene(event.scenePos()), parent)
+                    self._cur_bone.connect_arrow = ConnectArrow(self._parent_bone._tail_point_pos,
+                                                                parent.mapFromScene(event.scenePos()), parent)
+                # handler
+                handler = BoneHandle(QRectF(-HANDLER_RADIUS, -HANDLER_RADIUS, HANDLER_RADIUS * 2, HANDLER_RADIUS * 2))
+                handler.setPos(event.scenePos().x(), event.scenePos().y())
+                self.addItem(handler)
+                self._cur_bone.handler = handler
 
                 self._bone_list.append(self._cur_bone)
                 self._add_bone = True
@@ -97,7 +111,8 @@ class DrawScene(QGraphicsScene):
             if self._bone_start_point is not None and self._cur_bone is not None:
                 start_pos = self._bone_start_point
                 cur_pos = event.scenePos()
-                distance = math.sqrt(math.pow((cur_pos.x() - start_pos.x()), 2) + math.pow((cur_pos.y() - start_pos.y()), 2))
+                distance = math.sqrt(
+                    math.pow((cur_pos.x() - start_pos.x()), 2) + math.pow((cur_pos.y() - start_pos.y()), 2))
                 print("distance", distance)
                 angle = math.atan2((cur_pos.y() - start_pos.y()), (cur_pos.x() - start_pos.x())) * (180 / math.pi)
                 self._cur_bone.rotation_arrow(angle, distance)
