@@ -1,20 +1,13 @@
+import math
 from typing import Union
 
-from PySide6.QtWidgets import (
-    QGraphicsScene,
-    QGraphicsItemGroup
-)
-
-from PySide6.QtWidgets import QGraphicsScene, QGraphicsView, QGraphicsRectItem, QApplication, QGraphicsPolygonItem, \
-    QGraphicsLineItem, QGraphicsEllipseItem
-
-from PySide6.QtCore import Qt, QSize, QRectF, QPointF
-from PySide6.QtCore import Qt, QSize
-from PySide6.QtGui import QPalette, QColor, QIcon, QBrush, QPen, QPainter
 from PySide6 import QtGui
+from PySide6.QtCore import QRectF, QPointF
+from PySide6.QtCore import Qt, QSize
+from PySide6.QtGui import QColor, QPen, QPainter
+from PySide6.QtWidgets import QGraphicsScene
 
-import math
-from views.bone import Bone, RING_RADIUS, RING_BORDER_WIDTH, Ring, Arrow
+from views.bone import Bone, RING_RADIUS, RING_BORDER_WIDTH, Arrow
 from views.bone_handle import BoneHandle, HANDLER_RADIUS
 from views.connect_arrow import ConnectArrow
 from views.texture_item import TextureItem
@@ -30,6 +23,8 @@ class DrawScene(QGraphicsScene):
         self._bone_list = []
         self._total_rotation = 0
         self._add_bone = False
+
+        self._old_rect = self.itemsBoundingRect()
 
     def drawBackground(self, painter, rect):
         super().drawBackground(painter, rect)
@@ -81,10 +76,10 @@ class DrawScene(QGraphicsScene):
                 elif isinstance(item, Arrow):
                     item.parentItem().clicked()
             else:
-                # self.text_img = TextureItem(event.scenePos())
-                # self.text_img.setRotation(45)
-                # self.addItem(self.text_img)
-                # return
+                self.text_img = TextureItem(event.scenePos())
+                self.text_img.setRotation(45)
+                self.addItem(self.text_img)
+                return
 
                 self._bone_start_point = event.scenePos()
                 parent = None
@@ -129,6 +124,7 @@ class DrawScene(QGraphicsScene):
         super().mouseReleaseEvent(event)
 
         if event.button() == Qt.LeftButton:
+            self.auto_adjust()
             if self._add_bone:
                 self._parent_bone = self._cur_bone
 
@@ -138,3 +134,33 @@ class DrawScene(QGraphicsScene):
             event.accept()
             return
         event.ignore()
+
+    def auto_adjust(self):
+        """
+        自动调整画布大小
+        """
+        old_rect = self.sceneRect()
+        top = old_rect.top()
+        left = old_rect.left()
+        bottom = old_rect.bottom()
+        right = old_rect.right()
+
+        items_bounding_rect = self.itemsBoundingRect()
+        bounding_rect_top = items_bounding_rect.top()
+        bounding_rect_left = items_bounding_rect.left()
+        bounding_rect_bottom = items_bounding_rect.bottom()
+        bounding_rect_right = items_bounding_rect.right()
+
+        if bounding_rect_left - 200 < left:
+            old_rect.setLeft(bounding_rect_left - 200)
+
+        if bounding_rect_right + 200 > right:
+            old_rect.setRight(bounding_rect_right + 200)
+
+        if bounding_rect_top - 200 < top:
+            old_rect.setTop(bounding_rect_top - 200)
+
+        if bounding_rect_bottom + 200 > bottom:
+            old_rect.setBottom(bounding_rect_bottom + 200)
+
+        self.setSceneRect(old_rect)

@@ -3,7 +3,7 @@ from PySide6.QtCore import Qt
 from PySide6.QtWidgets import (
     QLabel,
     QTreeWidget,
-    QTreeWidgetItem,
+    QTreeWidgetItem, QTabWidget,
 )
 from PySide6.QtGui import QPalette, QColor, QIcon, QBrush
 from views.canvas_tab_item import CanvasTabItem
@@ -22,7 +22,7 @@ from PySide6.QtGui import QPalette, QColor, QIcon, QBrush, QPen
 import sys
 
 
-class MainCanvas(QtWidgets.QTabWidget):
+class MainCanvas(QTabWidget):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         # tabs = QtWidgets.QTabWidget(self)

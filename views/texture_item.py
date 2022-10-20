@@ -9,7 +9,7 @@ class Outline(QGraphicsRectItem):
         parent_bound = parent.boundingRect()
         self.setRect(parent_bound.left(), parent_bound.top(), parent_bound.width(), parent_bound.height())
 
-    def setPos(self, x, y) -> None:
+    def move_to_center(self, x, y) -> None:
         """
         使该item的原点为中心
         """
@@ -25,11 +25,11 @@ class TextureItem(QGraphicsPixmapItem):
         super().__init__(parent)
         self.setFlags(QGraphicsItem.ItemIsMovable | QGraphicsItem.ItemSendsGeometryChanges)
         self.setPixmap(QPixmap('test_img.png'))
-        self.setPos(pos.x(), pos.y())
+        self.move_to_center(pos.x(), pos.y())
 
         self._outline = Outline(self)
 
-    def setPos(self, x, y) -> None:
+    def move_to_center(self, x, y) -> None:
         """
         使该item的原点为中心
         """

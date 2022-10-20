@@ -6,15 +6,11 @@ from PySide6.QtWidgets import (
 )
 from PySide6.QtGui import QPalette, QColor, QIcon, QBrush
 
-
-class DrawOrderPanel(QtWidgets.QWidget):
+class DrawOrderPanel(QListWidget):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        line_edit = QtWidgets.QLineEdit(self)
-        line_edit.setGeometry(0, 0, 50, 10)
-        list_widget = QListWidget(self)
-        list_widget.addItem("Item 1")
-        list_widget.addItem("Item 2")
+        self.addItem("Item 1")
+        self.addItem("Item 2")
 
         self.setAutoFillBackground(True)
         palette = self.palette()

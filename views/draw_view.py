@@ -1,18 +1,12 @@
 from typing import Union
 
-from views.rule_bar import RuleBar, CornerBox, RULER_SIZE
-from PySide6.QtCore import Qt, QPoint, QEvent
-from PySide6.QtGui import QPalette, QColor, QIcon, QBrush, QPen, QPainter, QWheelEvent, QMouseEvent
-
+from PySide6.QtCore import Qt, QPoint, QRectF, QPointF
+from PySide6.QtGui import QWheelEvent
 from PySide6.QtWidgets import (
-    QLabel,
-    QTreeWidget,
-    QTreeWidgetItem,
-    QGraphicsScene,
-    QGraphicsView,
-    QGraphicsRectItem,
-    QStackedLayout
+    QGraphicsView
 )
+
+from views.rule_bar import RuleBar, CornerBox, RULER_SIZE
 
 
 class DrawView(QGraphicsView):
@@ -81,7 +75,9 @@ class DrawView(QGraphicsView):
             return
 
         view_box = self.rect()
-        offset = self.mapFromScene(self.scene().sceneRect().center())  # scene原点在中点了
+        #offset = self.mapFromScene(self.scene().sceneRect().center())  # scene原点在中点了
+        offset = self.mapFromScene(QPointF(0, 0))  # scene原点在中点了
+
         factor = 1 / self.transform().m11()
         lower_x = factor * (view_box.left() - offset.x())  # 计算出x轴最左边的scene坐标
         upper_x = factor * (view_box.right() - RULER_SIZE - offset.x())
@@ -135,6 +131,7 @@ class DrawView(QGraphicsView):
         event.ignore()
 
     def mouseReleaseEvent(self, event):
+        #self.auto_adjust(event)
         if event.button() == Qt.RightButton:
             self._pan = False
             self.setCursor(Qt.ArrowCursor)

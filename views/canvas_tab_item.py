@@ -1,22 +1,20 @@
-from PySide6 import QtCore, QtGui, QtWidgets
+from PySide6 import QtWidgets
 from PySide6.QtCore import Qt
+from PySide6.QtGui import QBrush
 from PySide6.QtWidgets import (
     QLabel,
-    QTreeWidget,
-    QTreeWidgetItem,
-    QGraphicsScene, QGraphicsView, QGraphicsRectItem, QStackedLayout, QGraphicsLineItem
+    QGraphicsRectItem, QGraphicsLineItem, QWidget, QHBoxLayout
 )
-from PySide6.QtGui import QPalette, QColor, QIcon, QBrush, QPen
-import sys
-from views.draw_view import DrawView
+
 from views.draw_scene import DrawScene
+from views.draw_view import DrawView
 from views.rule_bar import RuleBar, CornerBox
 
 
-class CanvasTabItem(QtWidgets.QWidget):
+class CanvasTabItem(QWidget):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        # Defining a scene rect of 400x200, with it's origin at 0,0.
+        # Defining a scene rect of 400x200, with its origin at 0,0.
         # If we don't set this on creation, we can set it later with .setSceneRect
         self.scene = DrawScene(-400, -200, 800, 400)
         # self.scene = QGraphicsScene(0, 0, 800, 400)
@@ -62,19 +60,30 @@ class CanvasTabItem(QtWidgets.QWidget):
         assert view.box is not None
 
         # main_window.view = view
-        self.stack_layout = QtWidgets.QStackedLayout()
-        self.stack_layout.addWidget(view)
-        self.setLayout(self.stack_layout)
+        self._stack_layout = QtWidgets.QStackedLayout()
+        self._stack_layout.addWidget(view)
+        self.setLayout(self._stack_layout)
         # self.setStyleSheet("background-color: black")
 
         # 切换armature和animation
-        armature_label = QLabel("armature", self)
-        armature_label.setGeometry(0, 20, 50, 10)
+        switch_bar = QWidget(self)
+        switch_bar.setGeometry(-20, 20, 200, 20)
+        switch_bar.setStyleSheet("background-color: yellow")
+
+        armature_label = QLabel("armature", switch_bar)
         armature_label.setStyleSheet("background-color: lightgreen")
 
-        animation_label = QLabel("animation", self)
-        animation_label.setGeometry(60, 20, 50, 10)
-        animation_label.setStyleSheet("background-color: yellow")
+        animation_label = QLabel("animation", switch_bar)
+        animation_label.setStyleSheet("background-color: blue")
+
+        layout = QHBoxLayout(self)
+        layout.setSpacing(2)
+        layout.setContentsMargins(0, 0, 0, 0)
+        layout.addWidget(armature_label)
+        layout.addWidget(animation_label)
+
+        switch_bar.setLayout(layout)
+
 
         # 右上角工具条
         self.right_tool_bar = QLabel("tool bar", self)

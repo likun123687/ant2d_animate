@@ -26,12 +26,12 @@ class MainWindow(QMainWindow):
         self.setMinimumSize(QSize(800, 600))
         # self.setCentralWidget(MainCanvas(self))
 
-        self.central_widget = QWidget(self)  # define central widget
-        self.setCentralWidget(self.central_widget)
+        self._central_widget = QWidget(self)  # define central widget
+        self.setCentralWidget(self._central_widget)
 
-        self.stacklayout = QStackedLayout()
-        self.stacklayout.addWidget(MainCanvas())
-        self.central_widget.setLayout(self.stacklayout)
+        self._stack_layout = QStackedLayout()
+        self._stack_layout.addWidget(MainCanvas())
+        self._central_widget.setLayout(self._stack_layout)
 
         toolbar = QToolBar("My main toolbar")
         toolbar.setIconSize(QSize(16, 16))
@@ -61,28 +61,28 @@ class MainWindow(QMainWindow):
         help_menu = menu.addMenu("帮助")
 
         # 左侧属性面板
-        self.property_panel_dock = QDockWidget('Property', self)
-        self.property_panel_dock.setWidget(PropertyPanel())
-        self.property_panel_dock.setFloating(False)
-        self.addDockWidget(Qt.LeftDockWidgetArea, self.property_panel_dock)
+        self._property_panel_dock = QDockWidget('Property', self)
+        self._property_panel_dock.setWidget(PropertyPanel())
+        self._property_panel_dock.setFloating(False)
+        self.addDockWidget(Qt.LeftDockWidgetArea, self._property_panel_dock)
 
         # 右侧面板
-        self.scene_panel_dock = QDockWidget('Scene', self)
-        self.scene_panel_dock.setWidget(ScenePanel())
-        self.scene_panel_dock.setFloating(False)
-        self.addDockWidget(Qt.RightDockWidgetArea, self.scene_panel_dock)
+        self._scene_panel_dock = QDockWidget('Scene', self)
+        self._scene_panel_dock.setWidget(ScenePanel())
+        self._scene_panel_dock.setFloating(False)
+        self.addDockWidget(Qt.RightDockWidgetArea, self._scene_panel_dock)
 
         # draw order panel
-        self.draw_order_panel_dock = QDockWidget('draw order', self)
-        self.draw_order_panel_dock.setWidget(DrawOrderPanel())
-        self.draw_order_panel_dock.setFloating(False)
-        self.tabifyDockWidget(self.scene_panel_dock, self.draw_order_panel_dock)
+        self._draw_order_panel_dock = QDockWidget('draw order', self)
+        self._draw_order_panel_dock.setWidget(DrawOrderPanel())
+        self._draw_order_panel_dock.setFloating(False)
+        self.tabifyDockWidget(self._scene_panel_dock, self._draw_order_panel_dock)
 
         # library panel
-        self.library_panel_dock = QDockWidget('library', self)
-        self.library_panel_dock.setWidget(LibraryPanel())
-        self.library_panel_dock.setFloating(False)
-        self.addDockWidget(Qt.RightDockWidgetArea, self.library_panel_dock)
+        self._library_panel_dock = QDockWidget('library', self)
+        self._library_panel_dock.setWidget(LibraryPanel())
+        self._library_panel_dock.setFloating(False)
+        self.addDockWidget(Qt.RightDockWidgetArea, self._library_panel_dock)
 
     def onMyToolBarButtonClick(self, s):
         print("click", s)
