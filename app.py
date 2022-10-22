@@ -35,19 +35,25 @@ class MainWindow(QMainWindow):
 
         toolbar = QToolBar("My main toolbar")
         toolbar.setIconSize(QSize(16, 16))
+        toolbar.setMovable(True)
         self.addToolBar(toolbar)
 
-        button_action = QAction(QIcon("bug.png"), "Your button", self)
-        button_action.setStatusTip("This is your button")
+        button_action = QAction(QIcon("bug.png"), "Armature", self)
+        button_action.setStatusTip("Armature")
+        button_action.setToolTip("Armature")
         button_action.triggered.connect(self.onMyToolBarButtonClick)
         button_action.setCheckable(True)
         toolbar.addAction(button_action)
         toolbar.addSeparator()
-        button_action1 = QAction(QIcon("bug.png"), "Your button", self)
-        button_action1.setStatusTip("This is your button")
+
+        button_action1 = QAction(QIcon("bug.png"), "Animation", self)
+        button_action1.setStatusTip("Animation")
+        button_action1.setToolTip("Animation")
         button_action1.triggered.connect(self.onMyToolBarButtonClick)
         button_action1.setCheckable(True)
         toolbar.addAction(button_action1)
+
+        self.create_tool_bar2()
 
         self.setStatusBar(QStatusBar(self))
 
@@ -100,6 +106,22 @@ class MainWindow(QMainWindow):
     # self.view.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
     # self.view.fitInView(-(self.width()/2), -(self.height()/2), self.width(), self.height(), Qt.KeepAspectRatio)
 
+    def create_tool_bar2(self):
+        toolbar = QToolBar("My main toolbar")
+        toolbar.setIconSize(QSize(16, 16))
+        self.addToolBar(toolbar)
+        button_action = QAction(QIcon("bug.png"), "Select", self)
+        button_action.setStatusTip("Select")
+        button_action.setToolTip("Select")
+        button_action.setCheckable(True)
+        toolbar.addAction(button_action)
+        toolbar.addSeparator()
+
+        button_action1 = QAction(QIcon("bug.png"), "Pose", self)
+        button_action1.setStatusTip("Pose")
+        button_action1.setToolTip("Pose")
+        button_action1.setCheckable(True)
+        toolbar.addAction(button_action1)
 
 app = QApplication(sys.argv)
 w = MainWindow()

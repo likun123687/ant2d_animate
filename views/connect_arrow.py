@@ -2,7 +2,7 @@ import math
 
 from PySide6.QtCore import QPointF
 from PySide6.QtGui import QPen, Qt
-from PySide6.QtWidgets import QGraphicsItemGroup, QGraphicsLineItem
+from PySide6.QtWidgets import QGraphicsItemGroup, QGraphicsLineItem, QGraphicsItem
 
 
 def rotate_point(point: QPointF, rotate_point: QPointF, angle):
@@ -15,7 +15,7 @@ def rotate_point(point: QPointF, rotate_point: QPointF, angle):
 
 
 class ConnectArrow(QGraphicsLineItem):
-    def __init__(self, start_point: QPointF, end_point: QPointF, parent: QGraphicsLineItem):
+    def __init__(self, start_point: QPointF, end_point: QPointF, parent: QGraphicsItem):
         """
         :param start_point: 都是local pos
         :param end_point: 都是local pos

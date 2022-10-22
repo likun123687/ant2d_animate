@@ -1,18 +1,15 @@
-import math
 from typing import Union
 
-from PySide6 import QtCore, QtGui, QtWidgets
+from PySide6.QtCore import Qt, QRectF, QPointF
+from PySide6.QtGui import QBrush, QPen, QPolygonF
 from PySide6.QtWidgets import (
     QGraphicsItem,
-    QGraphicsItemGroup,
     QGraphicsEllipseItem,
     QGraphicsPolygonItem,
-    QGraphicsLineItem, QGraphicsSceneHoverEvent
+    QGraphicsSceneHoverEvent
 )
-from PySide6.QtGui import QPalette, QColor, QIcon, QBrush, QPen, QPolygonF, QPainterPath
-from PySide6.QtCore import Qt, QSize, QRectF, QPointF
 
-from views.bone_handle import BoneHandle, HANDLER_RADIUS
+from views.bone_handle import BoneHandle
 from views.connect_arrow import ConnectArrow
 
 RING_BORDER_WIDTH = 1
@@ -22,14 +19,16 @@ DRAG_POINT_RADIUS = 0.5
 
 
 class Ring(QGraphicsEllipseItem):
+
     def __init__(self, rect, parent=None):
         super().__init__(rect, parent)
         print("parent bone", parent)
-        self.setFlags(QGraphicsItem.ItemIsMovable | QGraphicsItem.ItemSendsGeometryChanges | QGraphicsItem.ItemSendsScenePositionChanges)
-        self.setAcceptHoverEvents(True)
+        self.setFlags(
+            QGraphicsItem.ItemIsMovable | QGraphicsItem.ItemSendsGeometryChanges | QGraphicsItem.ItemSendsScenePositionChanges)
+        # self.setAcceptHoverEvents(True)
         # self.__radius = radius
 
-    def setPos(self, x, y) -> None:
+    def move_center_to(self, x, y) -> None:
         """
         使该item的原点为中心
         """
@@ -41,7 +40,7 @@ class Ring(QGraphicsEllipseItem):
 class DragPoint(QGraphicsEllipseItem):
     def __init__(self, rect, parent=None):
         super().__init__(rect, parent)
-        self.setAcceptHoverEvents(True)
+        # self.setAcceptHoverEvents(True)
         # self.setFlags(QGraphicsItem.ItemIsSelectable)
 
     def itemChange(self, change, value):
@@ -50,7 +49,7 @@ class DragPoint(QGraphicsEllipseItem):
             pass
         return super().itemChange(change, value)
 
-    def setPos(self, x, y) -> None:
+    def move_center_to(self, x, y) -> None:
         rect = self.boundingRect()
         offset = rect.center()
         super().moveBy(x - offset.x(), y - offset.y())
@@ -67,38 +66,42 @@ class DragPoint(QGraphicsEllipseItem):
 class Arrow(QGraphicsPolygonItem):
     def __init__(self, polygon, parent=None):
         super().__init__(polygon, parent)
-        self.setAcceptHoverEvents(True)
+        # self.setAcceptHoverEvents(True)
+        self.setFlags(
+            QGraphicsItem.ItemIsMovable | QGraphicsItem.ItemSendsGeometryChanges | QGraphicsItem.ItemSendsScenePositionChanges)
         self.setFlags(QGraphicsItem.ItemSendsGeometryChanges)
 
-    def itemChange(self, change, value):
-        if change == QGraphicsItem.ItemRotationChange:
-            # print("arrow angle change", value)
-            angle = math.radians(value)
-            x = math.cos(angle) * 5
-            y = math.sin(angle) * 5
-            # print("arrow now pos", x , y)
-
-        return super().itemChange(change, value)
+    # def itemChange(self, change, value):
+    #     if change == QGraphicsItem.ItemRotationChange:
+    #         # print("arrow angle change", value)
+    #         angle = math.radians(value)
+    #         x = math.cos(angle) * 5
+    #         y = math.sin(angle) * 5
+    #         # print("arrow now pos", x , y)
+    #     elif change == QGraphicsItem.ItemScenePositionHasChanged:
+    #         pass
+    #         #print("ring pos", value.x(), value.y(), self.scenePos())
+    #         # ring:Ring = self.parentItem()
+    #         # if ring is not None:
+    #         #     pp = ring.parentItem()
+    #         #     if pp is None:
+    #         #         ring.setPos(value.x(), value.y())
+    #         #     else:
+    #         #         pos = self.mapToItem(pp, value)
+    #         #         ring.setPos(pos.x(), pos.y())
+    #
+    #     return super().itemChange(change, value)
 
 
 class Bone(Ring):
-    def __init__(self, position, scene, parent: Arrow = None):
-        super().__init__(QRectF(-RING_RADIUS, -RING_RADIUS, RING_RADIUS * 2, RING_RADIUS * 2), parent)
-        self.setAcceptHoverEvents(True)
+    bone_count: int = 0
 
+    def __init__(self, position, scene: 'DrawScene', parent: Arrow = None):
+        super().__init__(QRectF(-RING_RADIUS, -RING_RADIUS, RING_RADIUS * 2, RING_RADIUS * 2), parent)
+        # self.setAcceptHoverEvents(True)
+        self._scene = scene
         pen = QPen(Qt.cyan)
         pen.setWidthF(0.1)
-        # line = QGraphicsLineItem()
-        # line.setPos(position.x(), position.y())
-        # line.setLine(0, 0, 60, 0)
-        # line.setPen(pen)
-        # scene.addItem(line)
-        #
-        # line1 = QGraphicsLineItem()
-        # line1.setPos(position.x(), position.y())
-        # line1.setLine(0, 0, 0, 60)
-        # line1.setPen(pen)
-        # scene.addItem(line1)
 
         # 圆圈
         # self._ring = Ring(QRectF(-RING_RADIUS, -RING_RADIUS, RING_RADIUS * 2, RING_RADIUS * 2))
@@ -108,7 +111,7 @@ class Bone(Ring):
             print("scene add item")
             scene.addItem(self)
 
-        self.setPos(position.x(), position.y())
+        self.move_center_to(position.x(), position.y())
 
         # Define the pen (line)
         pen.setWidthF(RING_BORDER_WIDTH)
@@ -135,7 +138,7 @@ class Bone(Ring):
         # 拉伸点
         self._drag_point = DragPoint(
             QRectF(-DRAG_POINT_RADIUS / 2, -DRAG_POINT_RADIUS / 2, DRAG_POINT_RADIUS, DRAG_POINT_RADIUS), self._arrow)
-        self._drag_point.setPos(RING_RADIUS - RING_BORDER_WIDTH / 2, 0)
+        self._drag_point.move_center_to(RING_RADIUS - RING_BORDER_WIDTH / 2, 0)
         pen = QPen(Qt.red)
         pen.setWidthF(DRAG_POINT_BORDER_WIDTH)
         self._drag_point.setPen(pen)
@@ -154,6 +157,8 @@ class Bone(Ring):
         if parent is not None:
             print("ppppp", parent.parentItem())
             self._arrow_angle_to_scene = parent.parentItem().arrow_angle_to_scene
+        self._bone_num = Bone.bone_count + 1
+        Bone.bone_count += 1
 
     def rotation_arrow(self, scene_angle, distance):
         self._arrow_angle_to_scene = scene_angle
@@ -163,7 +168,7 @@ class Bone(Ring):
             local_angle = scene_angle - parent_bone.arrow_angle_to_scene
         else:
             local_angle = scene_angle
-        print("scene_angle", scene_angle, "local_angle", local_angle)
+        # print("scene_angle", scene_angle, "local_angle", local_angle)
         self._arrow.setRotation(local_angle)
 
         # if distance <= RING_RADIUS - RING_BORDER_WIDTH / 2:
@@ -177,7 +182,7 @@ class Bone(Ring):
         :param pos: drag point position
         """
         pos = self._drag_point.mapFromScene(scene_pos)
-        self._drag_point.setPos(pos.x(), pos.y())
+        self._drag_point.move_center_to(pos.x(), pos.y())
         self._tail_point_pos = self._arrow.mapFromScene(scene_pos)
 
     def stretch_arrow(self, distance):
@@ -205,12 +210,6 @@ class Bone(Ring):
 
     def hover_leave_process(self):
         self.clicked()
-
-    def hoverEnterEvent(self, event: QGraphicsSceneHoverEvent) -> None:
-        self.hover_enter_process()
-
-    def hoverLeaveEvent(self, event: QGraphicsSceneHoverEvent) -> None:
-        self.hover_leave_process()
 
     def clicked(self):
         # brush = self.brush()
@@ -242,10 +241,13 @@ class Bone(Ring):
             print("bone pos change", value)
         elif change == QGraphicsItem.ItemScenePositionHasChanged:
             # print("bone scene pos change", self._handle, value)
-            print("scene pos11", self._handle.pos())
-            print("pos", value)
-            self._handle.setPos(value.x(), value.y())
-            print("scene pos22", self._handle.pos())
+            try:
+                print("scene pos11", self._handle.pos())
+                print("pos", value)
+                self._handle.setPos(value.x(), value.y())
+                print("scene pos22", self._handle.pos())
+            except AttributeError:
+                pass
 
         return super().itemChange(change, value)
 
@@ -280,3 +282,7 @@ class Bone(Ring):
     @handler.setter
     def handler(self, value: BoneHandle):
         self._handle = value
+
+    @property
+    def bone_num(self):
+        return self._bone_num

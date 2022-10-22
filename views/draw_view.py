@@ -1,7 +1,7 @@
 from typing import Union
 
 from PySide6.QtCore import Qt, QPoint, QRectF, QPointF
-from PySide6.QtGui import QWheelEvent
+from PySide6.QtGui import QWheelEvent, QPainter
 from PySide6.QtWidgets import (
     QGraphicsView
 )
@@ -19,6 +19,9 @@ class DrawView(QGraphicsView):
         self._pan = False
         self._pan_start_x = 0
         self._pan_start_y = 0
+        self.setMouseTracking(True)
+        self.setRenderHints(QPainter.Antialiasing | QPainter.SmoothPixmapTransform)
+
         # self.viewport().installEventFilter(self)
         # self.setDragMode(QGraphicsView.ScrollHandDrag)           #启用拖动
 
@@ -75,7 +78,7 @@ class DrawView(QGraphicsView):
             return
 
         view_box = self.rect()
-        #offset = self.mapFromScene(self.scene().sceneRect().center())  # scene原点在中点了
+        # offset = self.mapFromScene(self.scene().sceneRect().center())  # scene原点在中点了
         offset = self.mapFromScene(QPointF(0, 0))  # scene原点在中点了
 
         factor = 1 / self.transform().m11()
@@ -131,12 +134,13 @@ class DrawView(QGraphicsView):
         event.ignore()
 
     def mouseReleaseEvent(self, event):
-        #self.auto_adjust(event)
+        # self.auto_adjust(event)
         if event.button() == Qt.RightButton:
             self._pan = False
             self.setCursor(Qt.ArrowCursor)
             event.accept()
             return
+
         super().mouseReleaseEvent(event)
         event.ignore()
 
@@ -148,9 +152,10 @@ class DrawView(QGraphicsView):
             self._pan_start_x = event.x()
             self._pan_start_y = event.y()
             event.accept()
+            return
 
         event.ignore()
 
         # ps = self.mapToScene(event.pos())
-        self._h_ruler.update_position(event.pos())
-        self._v_ruler.update_position(event.pos())
+        # self._h_ruler.update_position(event.pos())
+        # self._v_ruler.update_position(event.pos())

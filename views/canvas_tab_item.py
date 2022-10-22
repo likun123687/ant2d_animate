@@ -83,6 +83,7 @@ class CanvasTabItem(QWidget):
         layout.addWidget(animation_label)
 
         switch_bar.setLayout(layout)
+        switch_bar.raise_()
 
 
         # 右上角工具条
