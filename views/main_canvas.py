@@ -11,5 +11,8 @@ class MainCanvas(QTabWidget):
         # tabs = QtWidgets.QTabWidget(self)
         self.setMovable(True)
         self.addTab(CanvasTabItem(), "111")
-        #self.setCurrentIndex(1)
-        #self.addTab(QLabel("bbbb"), "222")
+        self.setStyleSheet('''QTabWidget::tab-bar {
+    left: 0; 
+}''')
+        # self.setCurrentIndex(1)
+        # self.addTab(QLabel("bbbb"), "222")

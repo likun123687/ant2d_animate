@@ -23,7 +23,7 @@ class MainWindow(QMainWindow):
         # label = QLabel("Hello!")
         # label.setAlignment(Qt.AlignCenter)
 
-        self.setMinimumSize(QSize(800, 600))
+        self.setMinimumSize(QSize(1000, 800))
         # self.setCentralWidget(MainCanvas(self))
 
         self._central_widget = QWidget(self)  # define central widget
@@ -122,6 +122,7 @@ class MainWindow(QMainWindow):
         button_action1.setToolTip("Pose")
         button_action1.setCheckable(True)
         toolbar.addAction(button_action1)
+
 
 app = QApplication(sys.argv)
 w = MainWindow()
