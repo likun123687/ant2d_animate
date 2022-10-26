@@ -1,25 +1,8 @@
-from PySide6 import QtCore, QtGui, QtWidgets
-from PySide6.QtCore import Qt
 from PySide6.QtWidgets import (
-    QLabel,
-    QTreeWidget,
-    QTreeWidgetItem, QTabWidget,
+    QTabWidget,
 )
-from PySide6.QtGui import QPalette, QColor, QIcon, QBrush
+
 from views.canvas_tab_item import CanvasTabItem
-from PySide6 import QtCore, QtGui, QtWidgets
-from PySide6.QtCore import Qt
-from PySide6.QtWidgets import (
-    QLabel,
-    QTreeWidget,
-    QTreeWidgetItem,
-    QGraphicsScene,
-    QGraphicsView,
-    QGraphicsRectItem,
-    QStackedLayout
-)
-from PySide6.QtGui import QPalette, QColor, QIcon, QBrush, QPen
-import sys
 
 
 class MainCanvas(QTabWidget):
