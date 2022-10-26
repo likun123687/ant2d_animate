@@ -85,7 +85,6 @@ class CanvasTabItem(QWidget):
         switch_bar.setLayout(layout)
         switch_bar.raise_()
 
-
         # 右上角工具条
         self.right_tool_bar = QLabel("tool bar", self)
         self.right_tool_bar.setGeometry(self.width() - 50, 20, 50, 10)

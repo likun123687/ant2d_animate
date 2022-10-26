@@ -5,12 +5,14 @@ from PySide6.QtWidgets import (
     QTreeWidget,
     QTreeWidgetItem, QWidget, QVBoxLayout, QLineEdit, QHBoxLayout, QSizePolicy
 )
-from PySide6.QtGui import QPalette, QColor, QIcon, QBrush, QPixmap
+from PySide6.QtGui import QPalette, QColor, QIcon, QBrush, QPixmap, QDragEnterEvent, QDropEvent, QDragMoveEvent
 
 
 class LibraryPanel(QWidget):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+
+        self.setAcceptDrops(True)                                   # 2
 
         self._line_edit = QLineEdit()
         # self._line_edit.setGeometry(0, 0, 50, 10)
@@ -106,3 +108,30 @@ class LibraryPanel(QWidget):
         palette = self.palette()
         palette.setColor(QPalette.Window, QColor('gray'))
         self.setPalette(palette)
+
+    def dragEnterEvent(self, event: QDragEnterEvent) -> None:
+        print("cccc", event.mimeData().formats(), event.mimeData().hasUrls(), event.mimeData().hasText())
+        if event.mimeData().hasImage():
+            event.acceptProposedAction()
+            event.accept()
+        else:
+            event.ignore()
+            print("not support file format 1111")
+
+    def dragMoveEvent(self, event: QDragMoveEvent) -> None:
+        if event.mimeData().hasImage():
+            event.acceptProposedAction()
+            event.accept()
+        else:
+            event.ignore()
+            print("not support file format 22222")
+
+    def dropEvent(self, event: QDropEvent) -> None:
+        if event.mimeData().hasImage():
+            event.setDropAction(Qt.CopyAction)
+            file_path = event.mimeData().urls()[0].toLocalFile()
+            print("file path", file_path)
+            event.accept()
+        else:
+            event.ignore()
+

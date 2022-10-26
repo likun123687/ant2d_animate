@@ -19,13 +19,13 @@ class DrawScene(QGraphicsScene):
         self._grid_space = QSize(25, 25)  # 背景方格大小
         self._cur_bone: Union[Bone, None] = None  # 当前正在操作的bone
         self._bone_start_point: Union[QPointF, None] = None  # bone起始位置
-        self._parent_bone: Union[Bone, None] = None
+        self._parent_bone: Union[Bone, None] = None  # 父bone
         self._bone_tree = BoneTree()
         self._total_rotation = 0
         self._is_adding_bone = False
         self._last_hover_bone: Union[Bone, None] = None
         self._pressing_arrow = None  # 点击了哪个箭头
-        self._bone_begin_pos_when_arrow_drag: Union[QPointF, None] = None  # 当箭头拖动时圆环的位置
+        self._bone_pos_when_arrow_begin_drag: Union[QPointF, None] = None  # 当箭头拖动时圆环的位置
         self._arrow_begin_drag_pos: Union[QPointF, None] = None  # 箭头开始拖动时的鼠标位置
         # self._old_rect = self.itemsBoundingRect()
 
@@ -81,15 +81,16 @@ class DrawScene(QGraphicsScene):
                 # print("at item", item)
                 if isinstance(item, Bone):
                     item.clicked()
-                    print(item.arrow_angle_to_scene)
+                    self._parent_bone = item
                 elif isinstance(item, Arrow):
                     item.parentItem().clicked()
+                    self._parent_bone = item.parentItem()
                     self._pressing_arrow = item
                     bone_parent = item.parentItem().parentItem()
                     if bone_parent is None:
-                        self._bone_begin_pos_when_arrow_drag = item.parentItem().pos()
+                        self._bone_pos_when_arrow_begin_drag = item.parentItem().pos()
                     else:
-                        self._bone_begin_pos_when_arrow_drag = bone_parent.mapToScene(item.parentItem().pos())
+                        self._bone_pos_when_arrow_begin_drag = bone_parent.mapToScene(item.parentItem().pos())
                     self._arrow_begin_drag_pos = event.scenePos()
             else:
                 # self.text_img = TextureItem(event.scenePos())
@@ -150,11 +151,11 @@ class DrawScene(QGraphicsScene):
                     dx = cur_pos.x() - self._arrow_begin_drag_pos.x()
                     dy = cur_pos.y() - self._arrow_begin_drag_pos.y()
 
-                    new_scene_pos = QPointF(self._bone_begin_pos_when_arrow_drag.x() + dx,
-                                            self._bone_begin_pos_when_arrow_drag.y() + dy)
+                    new_scene_pos = QPointF(self._bone_pos_when_arrow_begin_drag.x() + dx,
+                                            self._bone_pos_when_arrow_begin_drag.y() + dy)
                     new_pos = ring_parent.mapFromScene(new_scene_pos)
                     ring.setPos(new_pos)
-                    self._bone_begin_pos_when_arrow_drag = new_scene_pos
+                    self._bone_pos_when_arrow_begin_drag = new_scene_pos
 
                     # cur_pos = ring_parent.mapFromScene(cur_pos)
                     # begin_pos = ring_parent.mapFromScene(self._begin_bone_pos)
