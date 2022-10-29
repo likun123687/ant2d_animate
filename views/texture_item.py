@@ -1,3 +1,5 @@
+from typing import Union
+
 from PySide6.QtCore import QPointF
 from PySide6.QtGui import QPixmap
 from PySide6.QtWidgets import QGraphicsPixmapItem, QGraphicsRectItem, QGraphicsItem
@@ -21,10 +23,10 @@ class Outline(QGraphicsRectItem):
 
 
 class TextureItem(QGraphicsPixmapItem):
-    def __init__(self, pos: QPointF, parent=None):
+    def __init__(self, pos: QPointF, image: Union[QPixmap, str], parent=None):
         super().__init__(parent)
         self.setFlags(QGraphicsItem.ItemIsMovable | QGraphicsItem.ItemSendsGeometryChanges)
-        self.setPixmap(QPixmap('test_img.png'))
+        self.setPixmap(image)
         self.move_to_center(pos.x(), pos.y())
 
         self._outline = Outline(self)

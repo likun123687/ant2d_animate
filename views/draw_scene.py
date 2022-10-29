@@ -2,15 +2,16 @@ import math
 from typing import Union
 
 from PySide6 import QtGui
-from PySide6.QtCore import QRectF, QPointF
+from PySide6.QtCore import QRectF, QPointF, QByteArray, QIODevice, QDataStream
 from PySide6.QtCore import Qt, QSize
-from PySide6.QtGui import QColor, QPen, QPainter
-from PySide6.QtWidgets import QGraphicsScene
+from PySide6.QtGui import QColor, QPen, QPainter, QPixmap
+from PySide6.QtWidgets import QGraphicsScene, QGraphicsSceneDragDropEvent
 
 from views.bone import Bone, RING_RADIUS, RING_BORDER_WIDTH, Arrow
 from views.bone_handle import BoneHandle, HANDLER_RADIUS
 from views.bone_tree import BoneTree, Node
 from views.connect_arrow import ConnectArrow
+from views.texture_item import TextureItem
 
 
 class DrawScene(QGraphicsScene):
@@ -255,3 +256,32 @@ class DrawScene(QGraphicsScene):
             old_rect.setBottom(bounding_rect_bottom + 200)
 
         self.setSceneRect(old_rect)
+
+    def dragEnterEvent(self, event: QGraphicsSceneDragDropEvent) -> None:
+        if event.mimeData().hasFormat("application/x-slot_data"):
+            event.setDropAction(Qt.CopyAction)
+            event.accept()
+        else:
+            event.ignore()
+
+    def dragMoveEvent(self, event: QGraphicsSceneDragDropEvent) -> None:
+        if event.mimeData().hasFormat("application/x-slot_data"):
+            event.setDropAction(Qt.CopyAction)
+            event.accept()
+        else:
+            event.ignore()
+
+    def dropEvent(self, event: QGraphicsSceneDragDropEvent) -> None:
+        if event.mimeData().hasFormat("application/x-slot_data"):
+            item_data: QByteArray = event.mimeData().data("application/x-slot_data")
+            data_stream = QDataStream(item_data, QIODevice.ReadOnly)
+            pixmap = QPixmap()
+            data_stream >> pixmap
+
+            text_img = TextureItem(event.scenePos(), pixmap)
+            self.addItem(text_img)
+
+            event.setDropAction(Qt.CopyAction)
+            event.accept()
+        else:
+            event.ignore()

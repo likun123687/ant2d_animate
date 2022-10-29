@@ -11,7 +11,7 @@ from views.time_line_bak.top_bar import TopBar
 class MainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
-        self.setMinimumSize(QSize(800, 600))
+        self.setMinimumSize(QSize(1000, 800))
         self.setWindowTitle("app test")
         # top_bar = TopBar()
         # self.setCentralWidget(top_bar)

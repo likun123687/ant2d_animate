@@ -1,10 +1,10 @@
 import math
 from typing import Union
 
-from PySide6.QtGui import QIcon, QBrush, Qt, QPalette, QColor, QPen, QPainter
-from PySide6.QtWidgets import QGraphicsView, QTreeWidget, QTreeWidgetItem, QGraphicsScene, QWidget
+from PySide6.QtGui import Qt, QColor, QPen, QPainter
+from PySide6.QtWidgets import QGraphicsView, QGraphicsScene
 
-from views.time_line.common import SUB_DIVIDE_INC, GRID_SPACE
+from views.time_line.common import GRID_SPACE
 from views.time_line.divisions_bar import DivisionsBar
 from views.time_line.left_panel import TrackTreeCtrl
 
@@ -16,15 +16,15 @@ class TrackScene(QGraphicsScene):
     def drawBackground(self, painter, rect):
         super().drawBackground(painter, rect)
         rect = rect.toRect()
-        c = QColor(Qt.black)
+        c = QColor(Qt.GlobalColor.black)
         p = QPen(c)
-        p.setStyle(Qt.SolidLine)
+        p.setStyle(Qt.PenStyle.SolidLine)
         p.setWidthF(1)
         p.setCosmetic(True)
         painter.setPen(p)
         painter.save()
         painter.setRenderHints(QPainter.Antialiasing, False)
-        painter.fillRect(rect, Qt.white)
+        painter.fillRect(rect, Qt.GlobalColor.white)
 
         left = math.floor(rect.left() / GRID_SPACE.width()) * GRID_SPACE.width()
         right = math.ceil(rect.right() / GRID_SPACE.width()) * GRID_SPACE.width()
