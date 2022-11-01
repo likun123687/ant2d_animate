@@ -1,4 +1,4 @@
-from typing import Union
+from typing import Union, Optional
 
 from PySide6.QtCore import Qt, QRectF, QPointF
 from PySide6.QtGui import QBrush, QPen, QPolygonF
@@ -24,7 +24,8 @@ class Ring(QGraphicsEllipseItem):
         super().__init__(rect, parent)
         print("parent bone", parent)
         self.setFlags(
-            QGraphicsItem.ItemIsMovable | QGraphicsItem.ItemSendsGeometryChanges | QGraphicsItem.ItemSendsScenePositionChanges)
+            QGraphicsItem.ItemIsMovable | QGraphicsItem.ItemSendsGeometryChanges
+            | QGraphicsItem.ItemSendsScenePositionChanges)
         # self.setAcceptHoverEvents(True)
         # self.__radius = radius
 
@@ -148,7 +149,7 @@ class Bone(Ring):
         # 2 旋转
         # 3 伸缩
         self._head_point_pos: Union[QPointF, None] = None
-        self._tail_point_pos: Union[QPointF, None] = QPointF(0, 0)
+        self._tail_point_pos: Optional[QPointF] = QPointF(0, 0)
         self._arrow_angle_to_scene = 0
         self._connect_arrow: Union[ConnectArrow, None] = None
         print("666666", self._connect_arrow)
@@ -177,10 +178,6 @@ class Bone(Ring):
         #     self._tail_point_pos = QPointF(x, y)
 
     def move_drag_point(self, scene_pos: QPointF) -> None:
-        """
-        move drag point
-        :param pos: drag point position
-        """
         pos = self._drag_point.mapFromScene(scene_pos)
         self._drag_point.move_center_to(pos.x(), pos.y())
         self._tail_point_pos = self._arrow.mapFromScene(scene_pos)
@@ -286,3 +283,7 @@ class Bone(Ring):
     @property
     def bone_num(self):
         return self._bone_num
+
+    @property
+    def tail_point_pos(self):
+        return self._tail_point_pos

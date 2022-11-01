@@ -1,9 +1,9 @@
 import json
 import pathlib
 from enum import Enum
-from typing import Union, List
+from typing import Union, List, Optional
 
-from PySide6.QtCore import Qt, QBuffer, QIODevice, QRect, QPoint, QMimeData, QByteArray, QDataStream
+from PySide6.QtCore import Qt, QBuffer, QIODevice, QRect, QPoint, QMimeData, QByteArray, QDataStream, QEvent
 from PySide6.QtGui import QPalette, QColor, QIcon, QBrush, QPixmap, QDragEnterEvent, QDropEvent, QDragMoveEvent, \
     QMouseEvent, QDrag
 from PySide6.QtWidgets import (
@@ -31,13 +31,13 @@ class AssetItem(QTreeWidgetItem):
         self._name: str = name
         self._description_path: str = desc_path
         self._file_path: str = ""
-        self._click_point: Union[QPoint, None] = None
+        self._click_point: Optional[QPoint] = None
         if isinstance(image, QPixmap):
             self._pixmap = image
         else:
             self._file_path = image
             self._pixmap = QPixmap(image)
-        thumb_pixmap: Union[QPixmap, None] = None
+        thumb_pixmap: Optional[QPixmap] = None
         if self._pixmap.width() > AssetItem.max_thumb_width or self._pixmap.height() > AssetItem.max_thumb_width:
             if self._pixmap.width() > self._pixmap.height():
                 thumb_pixmap = self._pixmap.scaledToWidth(AssetItem.max_thumb_width)
@@ -64,11 +64,13 @@ class AssetTreeWidget(QTreeWidget):
         super().__init__(*args, **kwargs)
         self.setDragEnabled(True)
         self.setAcceptDrops(True)
-        self._start_drag_point: Union[QPoint | None] = None
-        self._file_list = []
-        self.init_ui()
+        self.setMouseTracking(True)
+        self._start_drag_point: Optional[QPoint] = None
+        self._file_list: List[str] = []
+        self._root: Optional[QTreeWidgetItem] = None
+        self._init_ui()
 
-    def init_ui(self):
+    def _init_ui(self):
         # 设置列数
         self.setColumnCount(2)
         # 设置树形控件头部的标题
@@ -181,7 +183,16 @@ class AssetTreeWidget(QTreeWidget):
             drag_dis = (event.pos() - self._start_drag_point).manhattanLength()
             if drag_dis > QApplication.startDragDistance():
                 self.perform_drag()
+        elif event.buttons() == Qt.NoButton:
+            item = self.itemAt(event.pos())
+            if item:
+                print(item)
+            else:
+                print("cccc")
         super().mouseMoveEvent(event)
+
+    def leaveEvent(self, event: QEvent) -> None:
+        print("i leave tree")
 
     def mouseReleaseEvent(self, event: QMouseEvent) -> None:
         super().mouseReleaseEvent(event)
@@ -252,6 +263,8 @@ class AssetTreeWidget(QTreeWidget):
 class LibraryPanel(QWidget):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        self._line_edit: Optional[QLineEdit] = None
+        self._tree: Optional[AssetTreeWidget] = None
         self.init_ui()
 
     def init_ui(self) -> None:

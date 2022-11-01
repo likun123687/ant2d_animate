@@ -6,6 +6,7 @@ from PySide6.QtWidgets import (
 )
 from PySide6.QtGui import QPalette, QColor, QIcon, QBrush
 
+
 class DrawOrderPanel(QListWidget):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)

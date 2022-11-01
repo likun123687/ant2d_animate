@@ -5,7 +5,7 @@ from PySide6 import QtGui
 from PySide6.QtCore import QRectF, QPointF, QByteArray, QIODevice, QDataStream
 from PySide6.QtCore import Qt, QSize
 from PySide6.QtGui import QColor, QPen, QPainter, QPixmap
-from PySide6.QtWidgets import QGraphicsScene, QGraphicsSceneDragDropEvent
+from PySide6.QtWidgets import QGraphicsScene, QGraphicsSceneDragDropEvent, QGraphicsSceneMouseEvent
 
 from views.bone import Bone, RING_RADIUS, RING_BORDER_WIDTH, Arrow
 from views.bone_handle import BoneHandle, HANDLER_RADIUS
@@ -23,7 +23,7 @@ class DrawScene(QGraphicsScene):
         self._parent_bone: Union[Bone, None] = None  # 父bone
         self._bone_tree = BoneTree()
         self._total_rotation = 0
-        self._is_adding_bone = False
+        self._is_adding_bone: bool = False
         self._last_hover_bone: Union[Bone, None] = None
         self._pressing_arrow = None  # 点击了哪个箭头
         self._bone_pos_when_arrow_begin_drag: Union[QPointF, None] = None  # 当箭头拖动时圆环的位置
@@ -74,139 +74,171 @@ class DrawScene(QGraphicsScene):
 
         painter.restore()
 
+    def _press_bone_or_arrow(self, item: Union[Bone, Arrow], event: QGraphicsSceneMouseEvent) -> None:
+        """
+        点击了bone或者arrow
+        """
+        # print("at item", item)
+        if isinstance(item, Bone):
+            item.clicked()
+            self._parent_bone = item
+        elif isinstance(item, Arrow):
+            item.parentItem().clicked()
+            self._parent_bone = item.parentItem()
+            self._pressing_arrow = item
+            bone_parent = item.parentItem().parentItem()
+            if bone_parent is None:
+                self._bone_pos_when_arrow_begin_drag = item.parentItem().pos()
+            else:
+                self._bone_pos_when_arrow_begin_drag = bone_parent.mapToScene(item.parentItem().pos())
+            self._arrow_begin_drag_pos = event.scenePos()
+
+    def _add_bone(self, event: QGraphicsSceneMouseEvent):
+        """
+        添加一个bone
+        """
+        self._bone_start_point = event.scenePos()
+        parent_arrow = None
+
+        if self._parent_bone is not None:
+            parent_arrow = self._parent_bone.arrow
+
+        self._cur_bone = Bone(event.scenePos(), self, parent_arrow)
+        if parent_arrow is not None:
+            # self.connect_arrow = ConnectArrow(self._parent_bone._tail_point_pos,
+            # parent.mapFromScene(event.scenePos()), parent)
+            self._cur_bone.connect_arrow = ConnectArrow(self._parent_bone.tail_point_pos,
+                                                        parent_arrow.mapFromScene(event.scenePos()),
+                                                        parent_arrow)
+            self._cur_bone.connect_arrow.hide()
+        # handler操作柄
+        handler = BoneHandle(QRectF(-HANDLER_RADIUS, -HANDLER_RADIUS, HANDLER_RADIUS * 2, HANDLER_RADIUS * 2))
+        handler.setPos(event.scenePos().x(), event.scenePos().y())
+        self.addItem(handler)
+        self._cur_bone.handler = handler
+
+        # self._bone_list.append(self._cur_bone)
+        self._bone_tree.add_bone(self._cur_bone, self._parent_bone)
+        self._is_adding_bone = True
+
     def mousePressEvent(self, event):
         super().mousePressEvent(event)
         if event.button() == Qt.LeftButton:
             item = self.itemAt(event.scenePos(), QtGui.QTransform())
-            if item is not None:
-                # print("at item", item)
-                if isinstance(item, Bone):
-                    item.clicked()
-                    self._parent_bone = item
-                elif isinstance(item, Arrow):
-                    item.parentItem().clicked()
-                    self._parent_bone = item.parentItem()
-                    self._pressing_arrow = item
-                    bone_parent = item.parentItem().parentItem()
-                    if bone_parent is None:
-                        self._bone_pos_when_arrow_begin_drag = item.parentItem().pos()
-                    else:
-                        self._bone_pos_when_arrow_begin_drag = bone_parent.mapToScene(item.parentItem().pos())
-                    self._arrow_begin_drag_pos = event.scenePos()
+            if item:
+                if isinstance(item, Bone) or isinstance(item, Arrow):
+                    self._press_bone_or_arrow(item, event)
             else:
                 # self.text_img = TextureItem(event.scenePos())
                 # self.text_img.setRotation(45)
                 # self.addItem(self.text_img)
                 # return
-
                 # 增加一个bone
-                self._bone_start_point = event.scenePos()
-                parent_arrow = None
+                self._add_bone(event)
 
-                if self._parent_bone is not None:
-                    parent_arrow = self._parent_bone.arrow
+    def _stretch_arrow(self, event):
+        """
+        拉长箭头
+        """
+        if self._bone_start_point is not None and self._cur_bone is not None:
+            start_pos = self._bone_start_point
+            cur_pos = event.scenePos()
+            distance = math.sqrt(
+                math.pow((cur_pos.x() - start_pos.x()), 2) + math.pow((cur_pos.y() - start_pos.y()), 2))
+            # print("distance", distance)
+            angle = math.atan2((cur_pos.y() - start_pos.y()), (cur_pos.x() - start_pos.x())) * (180 / math.pi)
+            self._cur_bone.rotation_arrow(angle, distance)
 
-                self._cur_bone = Bone(event.scenePos(), self, parent_arrow)
-                if parent_arrow is not None:
-                    # self.connect_arrow = ConnectArrow(self._parent_bone._tail_point_pos, parent.mapFromScene(event.scenePos()), parent)
-                    self._cur_bone.connect_arrow = ConnectArrow(self._parent_bone._tail_point_pos,
-                                                                parent_arrow.mapFromScene(event.scenePos()),
-                                                                parent_arrow)
-                    self._cur_bone.connect_arrow.hide()
-                # handler操作柄
-                handler = BoneHandle(QRectF(-HANDLER_RADIUS, -HANDLER_RADIUS, HANDLER_RADIUS * 2, HANDLER_RADIUS * 2))
-                handler.setPos(event.scenePos().x(), event.scenePos().y())
-                self.addItem(handler)
-                self._cur_bone.handler = handler
+            if distance > RING_RADIUS - RING_BORDER_WIDTH / 2:
+                self._cur_bone.stretch_arrow(distance)
+                self._cur_bone.move_drag_point(cur_pos)
+            event.accept()
 
-                # self._bone_list.append(self._cur_bone)
-                self._bone_tree.add_bone(self._cur_bone, self._parent_bone)
-                self._is_adding_bone = True
+    def _drag_arrow(self, event):
+        """
+        拖动箭头
+        """
+        ring = self._pressing_arrow.parentItem()
+        cur_pos = event.scenePos()
+        ring_parent = ring.parentItem()
+        if ring_parent is None:
+            ring.moveBy(cur_pos.x() - self._arrow_begin_drag_pos.x(),
+                        cur_pos.y() - self._arrow_begin_drag_pos.y())
+        else:
+            dx = cur_pos.x() - self._arrow_begin_drag_pos.x()
+            dy = cur_pos.y() - self._arrow_begin_drag_pos.y()
+
+            new_scene_pos = QPointF(self._bone_pos_when_arrow_begin_drag.x() + dx,
+                                    self._bone_pos_when_arrow_begin_drag.y() + dy)
+            new_pos = ring_parent.mapFromScene(new_scene_pos)
+            ring.setPos(new_pos)
+            self._bone_pos_when_arrow_begin_drag = new_scene_pos
+
+            # cur_pos = ring_parent.mapFromScene(cur_pos)
+            # begin_pos = ring_parent.mapFromScene(self._begin_bone_pos)
+            #
+            # ring.moveBy(cur_pos.x() - begin_pos.x(), cur_pos.y() - begin_pos.y())
+        self._arrow_begin_drag_pos = cur_pos
+
+    def _hover_bone_enter(self, item: Union[Bone, Arrow], event):
+        """
+        hover一个bone或者arrow
+        """
+        if isinstance(item, Bone):
+            node = self._bone_tree.get_node(item)
+            self._last_hover_bone = item
+        elif isinstance(item, Arrow):
+            node = self._bone_tree.get_node(item.parentItem())
+            self._last_hover_bone = item.parentItem()
+        else:
+            super().mouseMoveEvent(event)
+            event.ignore()
+            return
+
+        self._last_hover_bone.hover_enter_process()
+        if self._last_hover_bone.connect_arrow:
+            self._last_hover_bone.connect_arrow.show()
+        if node is not None:
+            for sub_bone in node.get_all_sub_bones():
+                if sub_bone.connect_arrow:
+                    sub_bone.connect_arrow.show()
+
+            for up_bone in node.get_parents_bone():
+                if up_bone.connect_arrow:
+                    up_bone.connect_arrow.show()
+
+    def _hover_bone_leave(self, item: Union[Bone, Arrow], event):
+        if self._last_hover_bone is not None:
+            self._last_hover_bone.hover_leave_process()
+            if self._last_hover_bone.connect_arrow:
+                self._last_hover_bone.connect_arrow.hide()
+            node = self._bone_tree.get_node(self._last_hover_bone)
+            if node is not None:
+                for sub_bone in node.get_all_sub_bones():
+                    if sub_bone.connect_arrow:
+                        sub_bone.connect_arrow.hide()
+                for up_bone in node.get_parents_bone():
+                    if up_bone.connect_arrow:
+                        up_bone.connect_arrow.hide()
+        self._last_hover_bone = None
 
     def mouseMoveEvent(self, event):
         if event.buttons() & Qt.LeftButton:
-            if self._bone_start_point is not None and self._cur_bone is not None:
-                start_pos = self._bone_start_point
-                cur_pos = event.scenePos()
-                distance = math.sqrt(
-                    math.pow((cur_pos.x() - start_pos.x()), 2) + math.pow((cur_pos.y() - start_pos.y()), 2))
-                # print("distance", distance)
-                angle = math.atan2((cur_pos.y() - start_pos.y()), (cur_pos.x() - start_pos.x())) * (180 / math.pi)
-                self._cur_bone.rotation_arrow(angle, distance)
-
-                if distance > RING_RADIUS - RING_BORDER_WIDTH / 2:
-                    self._cur_bone.stretch_arrow(distance)
-                    self._cur_bone.move_drag_point(cur_pos)
-                event.accept()
-                return
+            if self._is_adding_bone:
+                # 拉长箭头
+                self._stretch_arrow(event)
 
             # 拖动箭头
             if self._pressing_arrow is not None:
-                ring = self._pressing_arrow.parentItem()
-                cur_pos = event.scenePos()
-                ring_parent = ring.parentItem()
-                if ring_parent is None:
-                    ring.moveBy(cur_pos.x() - self._arrow_begin_drag_pos.x(),
-                                cur_pos.y() - self._arrow_begin_drag_pos.y())
-                else:
-                    dx = cur_pos.x() - self._arrow_begin_drag_pos.x()
-                    dy = cur_pos.y() - self._arrow_begin_drag_pos.y()
-
-                    new_scene_pos = QPointF(self._bone_pos_when_arrow_begin_drag.x() + dx,
-                                            self._bone_pos_when_arrow_begin_drag.y() + dy)
-                    new_pos = ring_parent.mapFromScene(new_scene_pos)
-                    ring.setPos(new_pos)
-                    self._bone_pos_when_arrow_begin_drag = new_scene_pos
-
-                    # cur_pos = ring_parent.mapFromScene(cur_pos)
-                    # begin_pos = ring_parent.mapFromScene(self._begin_bone_pos)
-                    #
-                    # ring.moveBy(cur_pos.x() - begin_pos.x(), cur_pos.y() - begin_pos.y())
-                self._arrow_begin_drag_pos = cur_pos
-
+                self._drag_arrow(event)
 
         elif event.buttons() == Qt.NoButton:
             # hover some item
             item = self.itemAt(event.scenePos(), QtGui.QTransform())
-            node: Union[Node, None] = None
             if item is not None:
-                if isinstance(item, Bone):
-                    node = self._bone_tree.get_node(item)
-                    self._last_hover_bone = item
-                elif isinstance(item, Arrow):
-                    node = self._bone_tree.get_node(item.parentItem())
-                    self._last_hover_bone = item.parentItem()
-                else:
-                    super().mouseMoveEvent(event)
-                    event.ignore()
-                    return
-
-                self._last_hover_bone.hover_enter_process()
-                if self._last_hover_bone.connect_arrow:
-                    self._last_hover_bone.connect_arrow.show()
-                if node is not None:
-                    for sub_bone in node.get_all_sub_bones():
-                        if sub_bone.connect_arrow:
-                            sub_bone.connect_arrow.show()
-
-                    for up_bone in node.get_parents_bone():
-                        if up_bone.connect_arrow:
-                            up_bone.connect_arrow.show()
-
+                self._hover_bone_enter(item, event)
             else:
-                if self._last_hover_bone is not None:
-                    self._last_hover_bone.hover_leave_process()
-                    if self._last_hover_bone.connect_arrow:
-                        self._last_hover_bone.connect_arrow.hide()
-                    node = self._bone_tree.get_node(self._last_hover_bone)
-                    if node is not None:
-                        for sub_bone in node.get_all_sub_bones():
-                            if sub_bone.connect_arrow:
-                                sub_bone.connect_arrow.hide()
-                        for up_bone in node.get_parents_bone():
-                            if up_bone.connect_arrow:
-                                up_bone.connect_arrow.hide()
-                self._last_hover_bone = None
+                self._hover_bone_leave(item, event)
 
         super().mouseMoveEvent(event)
         event.ignore()

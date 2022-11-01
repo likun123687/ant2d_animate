@@ -1,9 +1,8 @@
-from typing import List, Dict, Tuple
 import math
-from PySide6 import QtCore, QtGui, QtWidgets
-from PySide6.QtCore import Qt
-from PySide6.QtGui import QPalette, QColor, QIcon, QBrush, QPen, QPainter, QFontMetrics
-from PySide6.QtCore import Qt, QPoint, QRect, QRectF
+
+from PySide6 import QtWidgets
+from PySide6.QtCore import Qt, QPoint, QRect
+from PySide6.QtGui import QColor, QPen, QPainter, QFontMetrics
 
 MINIMUM_INCR = 5
 

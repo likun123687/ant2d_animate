@@ -7,6 +7,8 @@ from PySide6.QtWidgets import (
 from PySide6.QtCore import QRect, QPoint
 from PySide6.QtGui import QAction, QIcon
 from PySide6.QtCore import Qt, QSize
+
+from views.dock_title_bar import DockTitleBar
 from views.property_panel import PropertyPanel
 from views.scene_panel import ScenePanel
 from views.draw_order_panel import DrawOrderPanel
@@ -88,6 +90,8 @@ class MainWindow(QMainWindow):
         self._library_panel_dock = QDockWidget('library', self)
         self._library_panel_dock.setWidget(LibraryPanel())
         self._library_panel_dock.setFloating(False)
+        self._library_panel_dock.setTitleBarWidget(DockTitleBar())
+        self._library_panel_dock.setStyleSheet("QDockWidget::title{padding-left: 0px; }")
         self.addDockWidget(Qt.RightDockWidgetArea, self._library_panel_dock)
 
     def onMyToolBarButtonClick(self, s):
