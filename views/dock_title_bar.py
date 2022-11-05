@@ -24,16 +24,12 @@ class DockTitleBar(QWidget):
         label2.setStyleSheet("background-color: yellow")
         layout.addWidget(label2)
 
-        layout.addWidget(label1)
-        layout.addWidget(label2)
         layout.addStretch()
 
         label3 = QLabel()
         label3.setPixmap(QPixmap('./bug.png'))
         label3.setStyleSheet("background-color: yellow")
         layout.addWidget(label3)
-
-        self.setStyleSheet("")
 
         self.setLayout(layout)
 

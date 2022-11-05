@@ -25,7 +25,8 @@ class Outline(QGraphicsRectItem):
 class TextureItem(QGraphicsPixmapItem):
     def __init__(self, pos: QPointF, image: Union[QPixmap, str], parent=None):
         super().__init__(parent)
-        self.setFlags(QGraphicsItem.ItemIsMovable | QGraphicsItem.ItemSendsGeometryChanges)
+        self.setFlags(
+            QGraphicsItem.ItemIsMovable | QGraphicsItem.ItemSendsGeometryChanges | QGraphicsItem.ItemStacksBehindParent)
         self.setPixmap(image)
         self.move_to_center(pos.x(), pos.y())
 

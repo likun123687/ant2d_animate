@@ -1,12 +1,13 @@
 import math
-from typing import Union
+from typing import Union, Optional
 
 from PySide6 import QtGui
-from PySide6.QtCore import QRectF, QPointF, QByteArray, QIODevice, QDataStream
+from PySide6.QtCore import QRectF, QPointF, QByteArray, QIODevice, QDataStream, Slot
 from PySide6.QtCore import Qt, QSize
 from PySide6.QtGui import QColor, QPen, QPainter, QPixmap
 from PySide6.QtWidgets import QGraphicsScene, QGraphicsSceneDragDropEvent, QGraphicsSceneMouseEvent
 
+from common.signal_bus import SIGNAL_BUS
 from views.bone import Bone, RING_RADIUS, RING_BORDER_WIDTH, Arrow
 from views.bone_handle import BoneHandle, HANDLER_RADIUS
 from views.bone_tree import BoneTree, Node
@@ -28,6 +29,7 @@ class DrawScene(QGraphicsScene):
         self._pressing_arrow = None  # 点击了哪个箭头
         self._bone_pos_when_arrow_begin_drag: Union[QPointF, None] = None  # 当箭头拖动时圆环的位置
         self._arrow_begin_drag_pos: Union[QPointF, None] = None  # 箭头开始拖动时的鼠标位置
+        self._cur_selected_bone: Optional[Bone] = None  # 当前选中的bone
         # self._old_rect = self.itemsBoundingRect()
 
     def drawBackground(self, painter, rect):
@@ -82,8 +84,23 @@ class DrawScene(QGraphicsScene):
         if isinstance(item, Bone):
             item.clicked()
             self._parent_bone = item
+
+            if self._cur_selected_bone and item != self._cur_selected_bone:
+                self._cur_selected_bone.is_selected = False
+                self._cur_selected_bone.hover_leave_process()
+
+            self._cur_selected_bone = item
+            SIGNAL_BUS.select_bone.emit(self._cur_selected_bone)
+
         elif isinstance(item, Arrow):
             item.parentItem().clicked()
+            if self._cur_selected_bone and item.parentItem() != self._cur_selected_bone:
+                self._cur_selected_bone.is_selected = False
+                self._cur_selected_bone.hover_leave_process()
+
+            self._cur_selected_bone = item.parentItem()
+            SIGNAL_BUS.select_bone.emit(self._cur_selected_bone)
+
             self._parent_bone = item.parentItem()
             self._pressing_arrow = item
             bone_parent = item.parentItem().parentItem()
@@ -119,6 +136,7 @@ class DrawScene(QGraphicsScene):
 
         # self._bone_list.append(self._cur_bone)
         self._bone_tree.add_bone(self._cur_bone, self._parent_bone)
+        SIGNAL_BUS.add_bone.emit(self._cur_bone, self._parent_bone)
         self._is_adding_bone = True
 
     def mousePressEvent(self, event):
@@ -210,6 +228,7 @@ class DrawScene(QGraphicsScene):
     def _hover_bone_leave(self, item: Union[Bone, Arrow], event):
         if self._last_hover_bone is not None:
             self._last_hover_bone.hover_leave_process()
+
             if self._last_hover_bone.connect_arrow:
                 self._last_hover_bone.connect_arrow.hide()
             node = self._bone_tree.get_node(self._last_hover_bone)
@@ -238,7 +257,7 @@ class DrawScene(QGraphicsScene):
             if item is not None:
                 self._hover_bone_enter(item, event)
             else:
-                self._hover_bone_leave(item, event)
+                self._hover_bone_leave(None, event)
 
         super().mouseMoveEvent(event)
         event.ignore()
@@ -317,3 +336,18 @@ class DrawScene(QGraphicsScene):
             event.accept()
         else:
             event.ignore()
+
+    @Slot(Bone)
+    def select_bone_from_scene_panel(self, bone: Bone) -> None:
+        bone.clicked()
+        if self._cur_selected_bone and bone != self._cur_selected_bone:
+            self._cur_selected_bone.is_selected = False
+            self._cur_selected_bone.hover_leave_process()
+
+        self._cur_selected_bone = bone
+        self._parent_bone = bone
+        self._cur_selected_bone.hover_leave_process()
+
+    @Slot(Bone)
+    def add_texture_to_bone(self, bone: Bone, pixmap: QPixmap):
+        TextureItem(QPointF(0.0, 0.0), pixmap, bone)

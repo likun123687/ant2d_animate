@@ -9,7 +9,7 @@ from PySide6.QtGui import QPalette, QColor, QIcon, QBrush, QPixmap, QDragEnterEv
 from PySide6.QtWidgets import (
     QLabel,
     QTreeWidget,
-    QTreeWidgetItem, QWidget, QVBoxLayout, QLineEdit, QHBoxLayout, QApplication
+    QTreeWidgetItem, QWidget, QVBoxLayout, QLineEdit, QHBoxLayout, QApplication, QHeaderView
 )
 
 
@@ -37,7 +37,7 @@ class AssetItem(QTreeWidgetItem):
         else:
             self._file_path = image
             self._pixmap = QPixmap(image)
-        thumb_pixmap: Optional[QPixmap] = None
+        thumb_pixmap: Optional[QPixmap] = self._pixmap
         if self._pixmap.width() > AssetItem.max_thumb_width or self._pixmap.height() > AssetItem.max_thumb_width:
             if self._pixmap.width() > self._pixmap.height():
                 thumb_pixmap = self._pixmap.scaledToWidth(AssetItem.max_thumb_width)
@@ -65,6 +65,10 @@ class AssetTreeWidget(QTreeWidget):
         self.setDragEnabled(True)
         self.setAcceptDrops(True)
         self.setMouseTracking(True)
+
+        self.header().setSectionResizeMode(QHeaderView.ResizeToContents)
+        # self.header().setStretchLastSection(False)
+
         self._start_drag_point: Optional[QPoint] = None
         self._file_list: List[str] = []
         self._root: Optional[QTreeWidgetItem] = None

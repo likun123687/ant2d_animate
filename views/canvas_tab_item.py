@@ -6,6 +6,7 @@ from PySide6.QtWidgets import (
     QGraphicsRectItem, QGraphicsLineItem, QWidget, QHBoxLayout
 )
 
+from common.signal_bus import SIGNAL_BUS
 from views.draw_scene import DrawScene
 from views.draw_view import DrawView
 from views.rule_bar import RuleBar, CornerBox
@@ -100,6 +101,9 @@ class CanvasTabItem(QWidget):
         self.bottom_center_bar.setGeometry(self.width() / 2 - 200 / 2, self.height() - 50, 200, 50)
         # self.bottom_center_bar.setGeometry(20,20, 200, 50)
         self.bottom_center_bar.setStyleSheet("background-color: blue")
+
+        SIGNAL_BUS.select_bone_from_scene_panel.connect(self.scene.select_bone_from_scene_panel)
+        SIGNAL_BUS.add_texture_to_bone.connect(self.scene.add_texture_to_bone)
 
     def resizeEvent(self, event):
         print("canvas tab item view resize")

@@ -1,14 +1,16 @@
-from PySide6.QtCore import QPointF
-from PySide6.QtGui import QPen, Qt, QPolygonF
+from PySide6.QtCore import QPointF, Qt
+from PySide6.QtGui import QPen, QPolygonF
 from PySide6.QtWidgets import QGraphicsEllipseItem, QGraphicsLineItem, QGraphicsPolygonItem
 
 HANDLER_BORDER_WIDTH = 0.1
 HANDLER_RADIUS = 0.2
 
+
 class BoneHandle(QGraphicsEllipseItem):
     """
     bone的操作手柄
     """
+
     def __init__(self, rect, parent=None):
         super().__init__(rect, parent)
         self.setAcceptHoverEvents(True)
@@ -29,7 +31,6 @@ class BoneHandle(QGraphicsEllipseItem):
         self._horizontal_arrow = QGraphicsPolygonItem(arrow_polygon, self)
         self._horizontal_arrow.setPos(0, 0)
         self._horizontal_arrow.setPen(pen)
-
 
         self._vertical_line = QGraphicsLineItem(self)
         self._vertical_line.setLine(0, 0, 0, 3)

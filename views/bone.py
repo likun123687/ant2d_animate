@@ -22,10 +22,11 @@ class Ring(QGraphicsEllipseItem):
 
     def __init__(self, rect, parent=None):
         super().__init__(rect, parent)
-        print("parent bone", parent)
         self.setFlags(
             QGraphicsItem.ItemIsMovable | QGraphicsItem.ItemSendsGeometryChanges
-            | QGraphicsItem.ItemSendsScenePositionChanges)
+            | QGraphicsItem.ItemSendsScenePositionChanges| QGraphicsItem.ItemStacksBehindParent)
+        brush = QBrush(Qt.lightGray)
+        self.setBrush(brush)
         # self.setAcceptHoverEvents(True)
         # self.__radius = radius
 
@@ -67,31 +68,14 @@ class DragPoint(QGraphicsEllipseItem):
 class Arrow(QGraphicsPolygonItem):
     def __init__(self, polygon, parent=None):
         super().__init__(polygon, parent)
+
+        brush = QBrush(Qt.lightGray)
+        self.setBrush(brush)
+
         # self.setAcceptHoverEvents(True)
         self.setFlags(
-            QGraphicsItem.ItemIsMovable | QGraphicsItem.ItemSendsGeometryChanges | QGraphicsItem.ItemSendsScenePositionChanges)
+            QGraphicsItem.ItemIsMovable | QGraphicsItem.ItemSendsGeometryChanges | QGraphicsItem.ItemSendsScenePositionChanges | QGraphicsItem.ItemStacksBehindParent)
         self.setFlags(QGraphicsItem.ItemSendsGeometryChanges)
-
-    # def itemChange(self, change, value):
-    #     if change == QGraphicsItem.ItemRotationChange:
-    #         # print("arrow angle change", value)
-    #         angle = math.radians(value)
-    #         x = math.cos(angle) * 5
-    #         y = math.sin(angle) * 5
-    #         # print("arrow now pos", x , y)
-    #     elif change == QGraphicsItem.ItemScenePositionHasChanged:
-    #         pass
-    #         #print("ring pos", value.x(), value.y(), self.scenePos())
-    #         # ring:Ring = self.parentItem()
-    #         # if ring is not None:
-    #         #     pp = ring.parentItem()
-    #         #     if pp is None:
-    #         #         ring.setPos(value.x(), value.y())
-    #         #     else:
-    #         #         pos = self.mapToItem(pp, value)
-    #         #         ring.setPos(pos.x(), pos.y())
-    #
-    #     return super().itemChange(change, value)
 
 
 class Bone(Ring):
@@ -152,11 +136,10 @@ class Bone(Ring):
         self._tail_point_pos: Optional[QPointF] = QPointF(0, 0)
         self._arrow_angle_to_scene = 0
         self._connect_arrow: Union[ConnectArrow, None] = None
-        print("666666", self._connect_arrow)
         self._handle: Union[BoneHandle, None] = None
+        self._is_selected: bool = False  # 是否选中
 
         if parent is not None:
-            print("ppppp", parent.parentItem())
             self._arrow_angle_to_scene = parent.parentItem().arrow_angle_to_scene
         self._bone_num = Bone.bone_count + 1
         Bone.bone_count += 1
@@ -197,7 +180,7 @@ class Bone(Ring):
             self._arrow.setPolygon(arrow_polygon)
 
     def hover_enter_process(self):
-        brush = QBrush(Qt.gray)
+        brush = QBrush(Qt.darkGray)
 
         self.setBrush(brush)
         self.update()
@@ -206,20 +189,29 @@ class Bone(Ring):
         self._arrow.update()
 
     def hover_leave_process(self):
-        self.clicked()
-
-    def clicked(self):
-        # brush = self.brush()
-        # if brush is None:
-        #     brush = QBrush()
-
-        brush = QBrush(Qt.yellow)
+        brush = QBrush(Qt.lightGray)
+        if self._is_selected:
+            brush = QBrush(Qt.yellow)
 
         self.setBrush(brush)
         self.update()
 
         self._arrow.setBrush(brush)
         self._arrow.update()
+
+    def clicked(self):
+        self._is_selected = True
+        # brush = self.brush()
+        # if brush is None:
+        #     brush = QBrush()
+
+        # brush = QBrush(Qt.yellow)
+        #
+        # self.setBrush(brush)
+        # self.update()
+        #
+        # self._arrow.setBrush(brush)
+        # self._arrow.update()
 
     def itemChange(self, change, value):
         if change == QGraphicsItem.ItemPositionHasChanged:
@@ -269,7 +261,6 @@ class Bone(Ring):
 
     @connect_arrow.setter
     def connect_arrow(self, value: ConnectArrow):
-        print("set connect_arrow")
         self._connect_arrow = value
 
     @property
@@ -287,3 +278,11 @@ class Bone(Ring):
     @property
     def tail_point_pos(self):
         return self._tail_point_pos
+
+    @property
+    def is_selected(self) -> bool:
+        return self._is_selected
+
+    @is_selected.setter
+    def is_selected(self, value: bool):
+        self._is_selected = value

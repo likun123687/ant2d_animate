@@ -33,7 +33,7 @@ class DivisionsBar(QWidget):
         ruler_rect = self.rect()
         painter = QPainter(self)
         p = QPen()
-        p.setStyle(Qt.SolidLine)
+        p.setStyle(Qt.GlobalColor.SolidLine)
         p.setWidthF(1)
         p.setCosmetic(True)
         painter.setPen(p)
@@ -78,4 +78,4 @@ class DivisionsBar(QWidget):
                              allocation.top() + 25,
                              w,
                              DIVISIONS_BAR_HEIGHT,
-                             Qt.AlignLeft | Qt.AlignTop, unit_str)
+                             Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignTop, unit_str)

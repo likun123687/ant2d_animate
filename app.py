@@ -1,19 +1,20 @@
 import sys
+
+from PySide6.QtCore import Qt, QSize
+from PySide6.QtGui import QAction, QIcon
 from PySide6.QtWidgets import (
     QMainWindow, QApplication,
-    QLabel, QToolBar, QStatusBar,
+    QToolBar, QStatusBar,
     QDockWidget, QStackedLayout, QWidget,
 )
-from PySide6.QtCore import QRect, QPoint
-from PySide6.QtGui import QAction, QIcon
-from PySide6.QtCore import Qt, QSize
 
+from common.signal_bus import SIGNAL_BUS
 from views.dock_title_bar import DockTitleBar
-from views.property_panel import PropertyPanel
-from views.scene_panel import ScenePanel
 from views.draw_order_panel import DrawOrderPanel
 from views.library_panel import LibraryPanel
 from views.main_canvas import MainCanvas
+from views.property_panel import PropertyPanel
+from views.scene_panel import ScenePanel
 
 
 class MainWindow(QMainWindow):
@@ -75,24 +76,28 @@ class MainWindow(QMainWindow):
         self.addDockWidget(Qt.LeftDockWidgetArea, self._property_panel_dock)
 
         # 右侧面板
-        self._scene_panel_dock = QDockWidget('Scene', self)
-        self._scene_panel_dock.setWidget(ScenePanel())
-        self._scene_panel_dock.setFloating(False)
-        self.addDockWidget(Qt.RightDockWidgetArea, self._scene_panel_dock)
+        self._scene_panel = ScenePanel()
+        scene_panel_dock = QDockWidget('Scene', self)
+        scene_panel_dock.setWidget(self._scene_panel)
+        scene_panel_dock.setFloating(False)
+        self.addDockWidget(Qt.RightDockWidgetArea, scene_panel_dock)
 
         # draw order panel
         self._draw_order_panel_dock = QDockWidget('draw order', self)
         self._draw_order_panel_dock.setWidget(DrawOrderPanel())
         self._draw_order_panel_dock.setFloating(False)
-        self.tabifyDockWidget(self._scene_panel_dock, self._draw_order_panel_dock)
+        self.tabifyDockWidget(scene_panel_dock, self._draw_order_panel_dock)
+        scene_panel_dock.raise_()  # 默认选中scene
 
         # library panel
         self._library_panel_dock = QDockWidget('library', self)
         self._library_panel_dock.setWidget(LibraryPanel())
         self._library_panel_dock.setFloating(False)
         self._library_panel_dock.setTitleBarWidget(DockTitleBar())
-        self._library_panel_dock.setStyleSheet("QDockWidget::title{padding-left: 0px; }")
+        self._library_panel_dock.setStyleSheet("QDockWidget::title{padding-left: 0px; margin-left:0px}")
         self.addDockWidget(Qt.RightDockWidgetArea, self._library_panel_dock)
+
+        self._connect_signal_to_slot()
 
     def onMyToolBarButtonClick(self, s):
         print("click", s)
@@ -126,6 +131,10 @@ class MainWindow(QMainWindow):
         button_action1.setToolTip("Pose")
         button_action1.setCheckable(True)
         toolbar.addAction(button_action1)
+
+    def _connect_signal_to_slot(self):
+        SIGNAL_BUS.add_bone.connect(self._scene_panel.tree.on_bone_added)
+        SIGNAL_BUS.select_bone.connect(self._scene_panel.tree.on_bone_selected)
 
 
 app = QApplication(sys.argv)
