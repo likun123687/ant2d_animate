@@ -59,3 +59,4 @@ class BoneHandle(QGraphicsEllipseItem):
         self._scale_bar_arrow = QGraphicsPolygonItem(arrow_polygon, self)
         self._scale_bar_arrow.setPos(0, 0)
         self._scale_bar_arrow.setPen(pen)
+        self.setZValue(3)

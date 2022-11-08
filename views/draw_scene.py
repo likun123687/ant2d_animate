@@ -350,4 +350,6 @@ class DrawScene(QGraphicsScene):
 
     @Slot(Bone)
     def add_texture_to_bone(self, bone: Bone, pixmap: QPixmap):
-        TextureItem(QPointF(0.0, 0.0), pixmap, bone)
+        texture_item = TextureItem(bone.scenePos(), pixmap)
+        self.addItem(texture_item)
+        bone.texture_item = texture_item

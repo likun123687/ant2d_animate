@@ -11,6 +11,7 @@ from PySide6.QtWidgets import (
 
 from views.bone_handle import BoneHandle
 from views.connect_arrow import ConnectArrow
+from views.texture_item import TextureItem
 
 RING_BORDER_WIDTH = 1
 RING_RADIUS = 5
@@ -24,7 +25,7 @@ class Ring(QGraphicsEllipseItem):
         super().__init__(rect, parent)
         self.setFlags(
             QGraphicsItem.ItemIsMovable | QGraphicsItem.ItemSendsGeometryChanges
-            | QGraphicsItem.ItemSendsScenePositionChanges| QGraphicsItem.ItemStacksBehindParent)
+            | QGraphicsItem.ItemSendsScenePositionChanges)
         brush = QBrush(Qt.lightGray)
         self.setBrush(brush)
         # self.setAcceptHoverEvents(True)
@@ -74,7 +75,7 @@ class Arrow(QGraphicsPolygonItem):
 
         # self.setAcceptHoverEvents(True)
         self.setFlags(
-            QGraphicsItem.ItemIsMovable | QGraphicsItem.ItemSendsGeometryChanges | QGraphicsItem.ItemSendsScenePositionChanges | QGraphicsItem.ItemStacksBehindParent)
+            QGraphicsItem.ItemIsMovable | QGraphicsItem.ItemSendsGeometryChanges | QGraphicsItem.ItemSendsScenePositionChanges)
         self.setFlags(QGraphicsItem.ItemSendsGeometryChanges)
 
 
@@ -138,6 +139,8 @@ class Bone(Ring):
         self._connect_arrow: Union[ConnectArrow, None] = None
         self._handle: Union[BoneHandle, None] = None
         self._is_selected: bool = False  # 是否选中
+        self._texture_item: Optional[TextureItem] = None
+        self.setZValue(2)
 
         if parent is not None:
             self._arrow_angle_to_scene = parent.parentItem().arrow_angle_to_scene
@@ -222,7 +225,7 @@ class Bone(Ring):
             print("bone pos change", value)
             try:
                 if self._connect_arrow is not None:
-                    self._connect_arrow.update_line(parent_bone._tail_point_pos, value)
+                    self._connect_arrow.update_line(parent_bone.tail_point_pos, value)
             except AttributeError:
                 pass
 
@@ -235,6 +238,9 @@ class Bone(Ring):
                 print("pos", value)
                 self._handle.setPos(value.x(), value.y())
                 print("scene pos22", self._handle.pos())
+                if self._texture_item:
+                    self._texture_item.bone_pos = value
+
             except AttributeError:
                 pass
 
@@ -286,3 +292,11 @@ class Bone(Ring):
     @is_selected.setter
     def is_selected(self, value: bool):
         self._is_selected = value
+
+    @property
+    def texture_item(self) -> TextureItem:
+        return self._texture_item
+
+    @texture_item.setter
+    def texture_item(self, texture_item: TextureItem) -> None:
+        self._texture_item = texture_item
