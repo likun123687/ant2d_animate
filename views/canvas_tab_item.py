@@ -7,6 +7,8 @@ from PySide6.QtWidgets import (
 )
 
 from common.signal_bus import SIGNAL_BUS
+from controllers.draw_scene_controller import DrawSceneController
+from models.draw_scene_model import DrawSceneModel
 from views.draw_scene import DrawScene
 from views.draw_view import DrawView
 from views.rule_bar import RuleBar, CornerBox
@@ -18,6 +20,11 @@ class CanvasTabItem(QWidget):
         # Defining a scene rect of 400x200, with its origin at 0,0.
         # If we don't set this on creation, we can set it later with .setSceneRect
         self.scene = DrawScene(-400, -200, 800, 400)
+        model = DrawSceneModel()
+
+        self.scene.model = model
+        self.scene.controller = DrawSceneController(model)
+
         # self.scene = QGraphicsScene(0, 0, 800, 400)
         # self.scene = QGraphicsScene()
 
@@ -67,47 +74,47 @@ class CanvasTabItem(QWidget):
         # self.setStyleSheet("background-color: black")
 
         # 切换armature和animation
-        switch_bar = QWidget(self)
-        switch_bar.setGeometry(-20, 20, 200, 20)
-        switch_bar.setStyleSheet("background-color: yellow")
-
-        armature_label = QLabel("armature", switch_bar)
-        armature_label.setStyleSheet("background-color: lightgreen")
-
-        animation_label = QLabel("animation", switch_bar)
-        animation_label.setStyleSheet("background-color: blue")
-
-        layout = QHBoxLayout(self)
-        layout.setSpacing(2)
-        layout.setContentsMargins(0, 0, 0, 0)
-        layout.addWidget(armature_label)
-        layout.addWidget(animation_label)
-
-        switch_bar.setLayout(layout)
-        switch_bar.raise_()
+        # switch_bar = QWidget(self)
+        # switch_bar.setGeometry(-20, 20, 200, 20)
+        # switch_bar.setStyleSheet("background-color: yellow")
+        #
+        # armature_label = QLabel("armature", switch_bar)
+        # armature_label.setStyleSheet("background-color: lightgreen")
+        #
+        # animation_label = QLabel("animation", switch_bar)
+        # animation_label.setStyleSheet("background-color: blue")
+        #
+        # layout = QHBoxLayout(self)
+        # layout.setSpacing(2)
+        # layout.setContentsMargins(0, 0, 0, 0)
+        # layout.addWidget(armature_label)
+        # layout.addWidget(animation_label)
+        #
+        # switch_bar.setLayout(layout)
+        # switch_bar.raise_()
 
         # 右上角工具条
-        self.right_tool_bar = QLabel("tool bar", self)
-        self.right_tool_bar.setGeometry(self.width() - 50, 20, 50, 10)
-        self.right_tool_bar.setStyleSheet("background-color: yellow")
-
-        # 左下角工具栏
-        self.left_tool_bar = QLabel("tool bar", self)
-        self.left_tool_bar.setGeometry(0, self.height() - 10, 50, 10)
-        self.left_tool_bar.setStyleSheet("background-color: yellow")
+        # self.right_tool_bar = QLabel("tool bar", self)
+        # self.right_tool_bar.setGeometry(self.width() - 50, 20, 50, 10)
+        # self.right_tool_bar.setStyleSheet("background-color: yellow")
+        #
+        # # 左下角工具栏
+        # self.left_tool_bar = QLabel("tool bar", self)
+        # self.left_tool_bar.setGeometry(0, self.height() - 10, 50, 10)
+        # self.left_tool_bar.setStyleSheet("background-color: yellow")
 
         # 底部中间工具
-        self.bottom_center_bar = QtWidgets.QWidget(self)
-        self.bottom_center_bar.setGeometry(self.width() / 2 - 200 / 2, self.height() - 50, 200, 50)
-        # self.bottom_center_bar.setGeometry(20,20, 200, 50)
-        self.bottom_center_bar.setStyleSheet("background-color: blue")
+        # self.bottom_center_bar = QtWidgets.QWidget(self)
+        # self.bottom_center_bar.setGeometry(self.width() / 2 - 200 / 2, self.height() - 50, 200, 50)
+        # # self.bottom_center_bar.setGeometry(20,20, 200, 50)
+        # self.bottom_center_bar.setStyleSheet("background-color: blue")
 
         SIGNAL_BUS.select_bone_from_scene_panel.connect(self.scene.select_bone_from_scene_panel)
         SIGNAL_BUS.add_texture_to_bone.connect(self.scene.add_texture_to_bone)
 
-    def resizeEvent(self, event):
-        print("canvas tab item view resize")
-        super().resizeEvent(event)
-        self.right_tool_bar.setGeometry(self.width() - 50, 20, 50, 10)
-        self.left_tool_bar.setGeometry(0, self.height() - 10, 50, 10)
-        self.bottom_center_bar.setGeometry(self.width() / 2 - 200 / 2, self.height() - 50, 200, 50)
+    # def resizeEvent(self, event):
+    #     print("canvas tab item view resize")
+    #     super().resizeEvent(event)
+    #     self.right_tool_bar.setGeometry(self.width() - 50, 20, 50, 10)
+    #     self.left_tool_bar.setGeometry(0, self.height() - 10, 50, 10)
+    #     self.bottom_center_bar.setGeometry(self.width() / 2 - 200 / 2, self.height() - 50, 200, 50)

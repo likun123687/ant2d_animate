@@ -1,21 +1,18 @@
 import sys
 from PySide6.QtWidgets import (
     QMainWindow, QApplication,
-    QLabel, QToolBar, QStatusBar,
-    QDockWidget, QStackedLayout, QWidget, QGraphicsScene,
-    QGraphicsScene, QGraphicsView, QGraphicsRectItem, QStackedLayout
+    QToolBar, QStatusBar,
+    QDockWidget, QWidget, QGraphicsScene, QGraphicsView, QGraphicsRectItem, QStackedLayout
 )
-from PySide6.QtCore import QRect, QPoint
-from PySide6.QtGui import QAction, QIcon
+from PySide6.QtGui import QAction
 from PySide6.QtCore import Qt, QSize
 from PySide6.QtGui import QPalette, QColor, QIcon, QBrush, QPen
-from PySide6 import QtCore, QtGui, QtWidgets
+from PySide6 import QtWidgets
 
-from views.property_panel import PropertyPanel
-from views.scene_panel import ScenePanel
-from views.draw_order_panel import DrawOrderPanel
-from views.library_panel import LibraryPanel
-from views.main_canvas import MainCanvas
+from views.panels.property_panel import PropertyPanel
+from views.panels.scene_panel import ScenePanel
+from views.panels.draw_order_panel import DrawOrderPanel
+from views.panels.library_panel import LibraryPanel
 
 
 class MainWindow(QMainWindow):

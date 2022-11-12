@@ -1,20 +1,19 @@
 import sys
 
 from PySide6.QtCore import Qt, QSize
-from PySide6.QtGui import QAction, QIcon
 from PySide6.QtWidgets import (
     QMainWindow, QApplication,
-    QToolBar, QStatusBar,
-    QDockWidget, QStackedLayout, QWidget,
-)
+    QStatusBar,
+    QDockWidget, QStackedLayout, QWidget, )
 
 from common.signal_bus import SIGNAL_BUS
 from views.dock_title_bar import DockTitleBar
-from views.draw_order_panel import DrawOrderPanel
-from views.library_panel import LibraryPanel
+from views.panels.draw_order_panel import DrawOrderPanel
+from views.panels.library_panel import LibraryPanel
 from views.main_canvas import MainCanvas
-from views.property_panel import PropertyPanel
-from views.scene_panel import ScenePanel
+from views.panels.property_panel import PropertyPanel
+from views.panels.scene_panel import ScenePanel
+from views.tool_bar import ToolBar
 
 
 class MainWindow(QMainWindow):
@@ -35,36 +34,13 @@ class MainWindow(QMainWindow):
         self._stack_layout = QStackedLayout()
         self._stack_layout.addWidget(MainCanvas())
         self._central_widget.setLayout(self._stack_layout)
-
-        toolbar = QToolBar("My main toolbar")
-        toolbar.setIconSize(QSize(16, 16))
-        toolbar.setMovable(True)
-        self.addToolBar(toolbar)
-
-        button_action = QAction(QIcon("bug.png"), "Armature", self)
-        button_action.setStatusTip("Armature")
-        button_action.setToolTip("Armature")
-        button_action.triggered.connect(self.onMyToolBarButtonClick)
-        button_action.setCheckable(True)
-        toolbar.addAction(button_action)
-        toolbar.addSeparator()
-
-        button_action1 = QAction(QIcon("bug.png"), "Animation", self)
-        button_action1.setStatusTip("Animation")
-        button_action1.setToolTip("Animation")
-        button_action1.triggered.connect(self.onMyToolBarButtonClick)
-        button_action1.setCheckable(True)
-        toolbar.addAction(button_action1)
-
-        self.create_tool_bar2()
+        self._tool_bar = ToolBar(self)
 
         self.setStatusBar(QStatusBar(self))
 
         # 菜单栏
         menu = self.menuBar()
         file_menu = menu.addMenu("文件")
-        file_menu.addAction(button_action)
-
         edit_menu = menu.addMenu("编辑")
         window_menu = menu.addMenu("窗口")
         help_menu = menu.addMenu("帮助")
@@ -115,22 +91,6 @@ class MainWindow(QMainWindow):
     # self.view.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
     # self.view.fitInView(-(self.width()/2), -(self.height()/2), self.width(), self.height(), Qt.KeepAspectRatio)
 
-    def create_tool_bar2(self):
-        toolbar = QToolBar("My main toolbar")
-        toolbar.setIconSize(QSize(16, 16))
-        self.addToolBar(toolbar)
-        button_action = QAction(QIcon("bug.png"), "Select", self)
-        button_action.setStatusTip("Select")
-        button_action.setToolTip("Select")
-        button_action.setCheckable(True)
-        toolbar.addAction(button_action)
-        toolbar.addSeparator()
-
-        button_action1 = QAction(QIcon("bug.png"), "Pose", self)
-        button_action1.setStatusTip("Pose")
-        button_action1.setToolTip("Pose")
-        button_action1.setCheckable(True)
-        toolbar.addAction(button_action1)
 
     def _connect_signal_to_slot(self):
         SIGNAL_BUS.add_bone.connect(self._scene_panel.tree.on_bone_added)

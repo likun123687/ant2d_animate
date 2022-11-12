@@ -8,10 +8,13 @@ from PySide6.QtGui import QColor, QPen, QPainter, QPixmap
 from PySide6.QtWidgets import QGraphicsScene, QGraphicsSceneDragDropEvent, QGraphicsSceneMouseEvent
 
 from common.signal_bus import SIGNAL_BUS
+from controllers.draw_scene_controller import DrawSceneController
+from models.draw_scene_model import DrawSceneModel
 from views.bone import Bone, RING_RADIUS, RING_BORDER_WIDTH, Arrow
 from views.bone_handle import BoneHandle, HANDLER_RADIUS
-from views.bone_tree import BoneTree, Node
+from views.bone_tree import BoneTree
 from views.connect_arrow import ConnectArrow
+from views.rotate_bar import RotateBar
 from views.texture_item import TextureItem
 
 
@@ -22,15 +25,18 @@ class DrawScene(QGraphicsScene):
         self._cur_bone: Union[Bone, None] = None  # 当前正在操作的bone
         self._bone_start_point: Union[QPointF, None] = None  # bone起始位置
         self._parent_bone: Union[Bone, None] = None  # 父bone
-        self._bone_tree = BoneTree()
-        self._total_rotation = 0
+        # self._bone_tree = BoneTree()
         self._is_adding_bone: bool = False
+
         self._last_hover_bone: Union[Bone, None] = None
+
         self._pressing_arrow = None  # 点击了哪个箭头
         self._bone_pos_when_arrow_begin_drag: Union[QPointF, None] = None  # 当箭头拖动时圆环的位置
         self._arrow_begin_drag_pos: Union[QPointF, None] = None  # 箭头开始拖动时的鼠标位置
-        self._cur_selected_bone: Optional[Bone] = None  # 当前选中的bone
+        # self._cur_selected_bone: Optional[Bone] = None  # 当前选中的bone
         # self._old_rect = self.itemsBoundingRect()
+        self._controller: Optional[DrawSceneController] = None
+        self._model: Optional[DrawSceneModel] = None
 
     def drawBackground(self, painter, rect):
         """
@@ -80,35 +86,27 @@ class DrawScene(QGraphicsScene):
         """
         点击了bone或者arrow
         """
-        # print("at item", item)
         if isinstance(item, Bone):
-            item.clicked()
-            self._parent_bone = item
-
-            if self._cur_selected_bone and item != self._cur_selected_bone:
-                self._cur_selected_bone.is_selected = False
-                self._cur_selected_bone.hover_leave_process()
-
-            self._cur_selected_bone = item
-            SIGNAL_BUS.select_bone.emit(self._cur_selected_bone)
-
+            target_bone = item
         elif isinstance(item, Arrow):
-            item.parentItem().clicked()
-            if self._cur_selected_bone and item.parentItem() != self._cur_selected_bone:
-                self._cur_selected_bone.is_selected = False
-                self._cur_selected_bone.hover_leave_process()
+            target_bone = item.parentItem()
 
-            self._cur_selected_bone = item.parentItem()
-            SIGNAL_BUS.select_bone.emit(self._cur_selected_bone)
-
-            self._parent_bone = item.parentItem()
+            # 记录拖动箭头所需要的信息
             self._pressing_arrow = item
-            bone_parent = item.parentItem().parentItem()
+            bone_parent = target_bone.parentItem()
             if bone_parent is None:
-                self._bone_pos_when_arrow_begin_drag = item.parentItem().pos()
+                self._bone_pos_when_arrow_begin_drag = target_bone.pos()
             else:
-                self._bone_pos_when_arrow_begin_drag = bone_parent.mapToScene(item.parentItem().pos())
+                self._bone_pos_when_arrow_begin_drag = bone_parent.mapToScene(target_bone.pos())
             self._arrow_begin_drag_pos = event.scenePos()
+
+        else:
+            return
+
+        # 记录当前父bone
+        self._parent_bone = target_bone
+        # 发送给controller
+        self._controller.signal_selected_bone_change.emit([target_bone])
 
     def _add_bone(self, event: QGraphicsSceneMouseEvent):
         """
@@ -117,13 +115,11 @@ class DrawScene(QGraphicsScene):
         self._bone_start_point = event.scenePos()
         parent_arrow = None
 
-        if self._parent_bone is not None:
+        if self._parent_bone:
             parent_arrow = self._parent_bone.arrow
 
         self._cur_bone = Bone(event.scenePos(), self, parent_arrow)
-        if parent_arrow is not None:
-            # self.connect_arrow = ConnectArrow(self._parent_bone._tail_point_pos,
-            # parent.mapFromScene(event.scenePos()), parent)
+        if parent_arrow:
             self._cur_bone.connect_arrow = ConnectArrow(self._parent_bone.tail_point_pos,
                                                         parent_arrow.mapFromScene(event.scenePos()),
                                                         parent_arrow)
@@ -134,9 +130,15 @@ class DrawScene(QGraphicsScene):
         self.addItem(handler)
         self._cur_bone.handler = handler
 
-        # self._bone_list.append(self._cur_bone)
-        self._bone_tree.add_bone(self._cur_bone, self._parent_bone)
-        SIGNAL_BUS.add_bone.emit(self._cur_bone, self._parent_bone)
+        # 旋转操作柄
+        rotate_bar = RotateBar(event.scenePos())
+        self.addItem(rotate_bar)
+
+        # 发送给controller
+        self._controller.signal_add_bone.emit(self._cur_bone, self._parent_bone)
+        # 默认选中新增的bone
+        self._controller.signal_selected_bone_change.emit([self._cur_bone])
+
         self._is_adding_bone = True
 
     def mousePressEvent(self, event):
@@ -158,7 +160,7 @@ class DrawScene(QGraphicsScene):
         """
         拉长箭头
         """
-        if self._bone_start_point is not None and self._cur_bone is not None:
+        if self._bone_start_point and self._cur_bone:
             start_pos = self._bone_start_point
             cur_pos = event.scenePos()
             distance = math.sqrt(
@@ -192,56 +194,35 @@ class DrawScene(QGraphicsScene):
             ring.setPos(new_pos)
             self._bone_pos_when_arrow_begin_drag = new_scene_pos
 
-            # cur_pos = ring_parent.mapFromScene(cur_pos)
-            # begin_pos = ring_parent.mapFromScene(self._begin_bone_pos)
-            #
-            # ring.moveBy(cur_pos.x() - begin_pos.x(), cur_pos.y() - begin_pos.y())
         self._arrow_begin_drag_pos = cur_pos
 
-    def _hover_bone_enter(self, item: Union[Bone, Arrow], event):
+    def _hover_bone_enter(self, item: Bone):
         """
         hover一个bone或者arrow
         """
-        if isinstance(item, Bone):
-            node = self._bone_tree.get_node(item)
-            self._last_hover_bone = item
-        elif isinstance(item, Arrow):
-            node = self._bone_tree.get_node(item.parentItem())
-            self._last_hover_bone = item.parentItem()
-        else:
-            super().mouseMoveEvent(event)
-            event.ignore()
+        if item == self._last_hover_bone:
             return
 
-        self._last_hover_bone.hover_enter_process()
-        if self._last_hover_bone.connect_arrow:
-            self._last_hover_bone.connect_arrow.show()
-        if node is not None:
-            for sub_bone in node.get_all_sub_bones():
-                if sub_bone.connect_arrow:
-                    sub_bone.connect_arrow.show()
+        if self._last_hover_bone:
+            self.controller.signal_hover_bone_leave.emit(self._last_hover_bone)
 
-            for up_bone in node.get_parents_bone():
-                if up_bone.connect_arrow:
-                    up_bone.connect_arrow.show()
+        # do sth
+        self.controller.signal_hover_bone_enter.emit(item)
 
-    def _hover_bone_leave(self, item: Union[Bone, Arrow], event):
-        if self._last_hover_bone is not None:
-            self._last_hover_bone.hover_leave_process()
+        self._last_hover_bone = item
 
-            if self._last_hover_bone.connect_arrow:
-                self._last_hover_bone.connect_arrow.hide()
-            node = self._bone_tree.get_node(self._last_hover_bone)
-            if node is not None:
-                for sub_bone in node.get_all_sub_bones():
-                    if sub_bone.connect_arrow:
-                        sub_bone.connect_arrow.hide()
-                for up_bone in node.get_parents_bone():
-                    if up_bone.connect_arrow:
-                        up_bone.connect_arrow.hide()
+    def _hover_bone_leave(self):
+        if not self._last_hover_bone:
+            return
+
+        # do sth
+        self.controller.signal_hover_bone_leave.emit(self._last_hover_bone)
+
         self._last_hover_bone = None
 
     def mouseMoveEvent(self, event):
+        super().mouseMoveEvent(event)
+
         if event.buttons() & Qt.LeftButton:
             if self._is_adding_bone:
                 # 拉长箭头
@@ -254,12 +235,18 @@ class DrawScene(QGraphicsScene):
         elif event.buttons() == Qt.NoButton:
             # hover some item
             item = self.itemAt(event.scenePos(), QtGui.QTransform())
-            if item is not None:
-                self._hover_bone_enter(item, event)
+            if isinstance(item, Bone):
+                self._hover_bone_enter(item)
+            elif isinstance(item, Arrow):
+                self._hover_bone_enter(item.parentItem())
             else:
-                self._hover_bone_leave(None, event)
+                self._hover_bone_leave()
 
-        super().mouseMoveEvent(event)
+            # if item is not None:
+            #     self._hover_bone_enter(item, event)
+            # else:
+            #     self._hover_bone_leave(None, event)
+
         event.ignore()
 
     def mouseReleaseEvent(self, event):
@@ -336,6 +323,22 @@ class DrawScene(QGraphicsScene):
             event.accept()
         else:
             event.ignore()
+
+    @property
+    def model(self):
+        return self._model
+
+    @model.setter
+    def model(self, value):
+        self._model = value
+
+    @property
+    def controller(self):
+        return self._controller
+
+    @controller.setter
+    def controller(self, value):
+        self._controller = value
 
     @Slot(Bone)
     def select_bone_from_scene_panel(self, bone: Bone) -> None:

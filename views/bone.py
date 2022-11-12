@@ -19,6 +19,19 @@ DRAG_POINT_BORDER_WIDTH = 0.2
 DRAG_POINT_RADIUS = 0.5
 
 
+class VisualProperty:
+    def __init__(self):
+        self.position: QPointF = QPointF(0, 0)
+        self.local_angle: float = 0.0
+        self.scene_angle: float = 0.0
+        self.local_width_scale: float = 1
+        self.local_height_scale: float = 1
+        self.scene_width_scale: float = 1
+        self.scene_height_scale: float = 1
+        self.width: float = 0
+        self.height: float = 0
+
+
 class Ring(QGraphicsEllipseItem):
 
     def __init__(self, rect, parent=None):
@@ -26,7 +39,7 @@ class Ring(QGraphicsEllipseItem):
         self.setFlags(
             QGraphicsItem.ItemIsMovable | QGraphicsItem.ItemSendsGeometryChanges
             | QGraphicsItem.ItemSendsScenePositionChanges)
-        brush = QBrush(Qt.lightGray)
+        brush = QBrush(Qt.yellow)
         self.setBrush(brush)
         # self.setAcceptHoverEvents(True)
         # self.__radius = radius
@@ -70,13 +83,11 @@ class Arrow(QGraphicsPolygonItem):
     def __init__(self, polygon, parent=None):
         super().__init__(polygon, parent)
 
-        brush = QBrush(Qt.lightGray)
+        brush = QBrush(Qt.yellow)
         self.setBrush(brush)
 
         # self.setAcceptHoverEvents(True)
-        self.setFlags(
-            QGraphicsItem.ItemIsMovable | QGraphicsItem.ItemSendsGeometryChanges | QGraphicsItem.ItemSendsScenePositionChanges)
-        self.setFlags(QGraphicsItem.ItemSendsGeometryChanges)
+        self.setFlags(QGraphicsItem.ItemSendsGeometryChanges | QGraphicsItem.ItemSendsScenePositionChanges)
 
 
 class Bone(Ring):
@@ -140,6 +151,8 @@ class Bone(Ring):
         self._handle: Union[BoneHandle, None] = None
         self._is_selected: bool = False  # 是否选中
         self._texture_item: Optional[TextureItem] = None
+        self._scene_width_scale: float = 1
+        self._scene_height_scale: float = 1
         self.setZValue(2)
 
         if parent is not None:
@@ -262,7 +275,7 @@ class Bone(Ring):
         return self._arrow_angle_to_scene
 
     @property
-    def connect_arrow(self):
+    def connect_arrow(self) -> ConnectArrow:
         return self._connect_arrow
 
     @connect_arrow.setter
@@ -300,3 +313,19 @@ class Bone(Ring):
     @texture_item.setter
     def texture_item(self, texture_item: TextureItem) -> None:
         self._texture_item = texture_item
+
+    def visual_property(self) -> VisualProperty:
+        p = VisualProperty()
+        p.position = self.scenePos()
+        p.local_angle = self.rotation()
+        p.scene_angle = self._arrow_angle_to_scene
+
+        rect = self.boundingRect()
+        p.width = rect.width()
+        p.height = rect.height()
+        p.local_width_scale = self.transform().m11()
+        p.local_height_scale = self.transform().m22()
+
+        p.scene_width_scale = self._scene_width_scale
+        p.scene_height_scale = self._scene_height_scale
+        return p
