@@ -1,4 +1,5 @@
 import math
+import weakref
 from typing import Union, Optional
 
 from PySide6 import QtGui
@@ -356,3 +357,4 @@ class DrawScene(QGraphicsScene):
         texture_item = TextureItem(bone.scenePos(), pixmap)
         self.addItem(texture_item)
         bone.texture_item = texture_item
+        texture_item.bind_bone = weakref.ref(bone)

@@ -11,6 +11,7 @@ from PySide6.QtWidgets import (
 
 from views.bone_handle import BoneHandle
 from views.connect_arrow import ConnectArrow
+from views.property import VisualProperty
 from views.texture_item import TextureItem
 
 RING_BORDER_WIDTH = 1
@@ -19,21 +20,7 @@ DRAG_POINT_BORDER_WIDTH = 0.2
 DRAG_POINT_RADIUS = 0.5
 
 
-class VisualProperty:
-    def __init__(self):
-        self.position: QPointF = QPointF(0, 0)
-        self.local_angle: float = 0.0
-        self.scene_angle: float = 0.0
-        self.local_width_scale: float = 1
-        self.local_height_scale: float = 1
-        self.scene_width_scale: float = 1
-        self.scene_height_scale: float = 1
-        self.width: float = 0
-        self.height: float = 0
-
-
 class Ring(QGraphicsEllipseItem):
-
     def __init__(self, rect, parent=None):
         super().__init__(rect, parent)
         self.setFlags(
@@ -314,9 +301,21 @@ class Bone(Ring):
     def texture_item(self, texture_item: TextureItem) -> None:
         self._texture_item = texture_item
 
+    @property
+    def scene_angle(self):
+        return self._arrow_angle_to_scene
+
+    @property
+    def scene_width_scale(self):
+        return self._scene_width_scale
+
+    @property
+    def scene_height_scale(self):
+        return self._scene_height_scale
+
     def visual_property(self) -> VisualProperty:
         p = VisualProperty()
-        p.position = self.scenePos()
+        p.position = self.pos()
         p.local_angle = self.rotation()
         p.scene_angle = self._arrow_angle_to_scene
 

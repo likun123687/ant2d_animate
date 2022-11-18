@@ -1,5 +1,6 @@
 from PySide6.QtCore import QObject, Signal
 
+from common.signal_bus import SIGNAL_BUS
 from models.draw_scene_model import DrawSceneModel
 from views.bone import Bone
 
@@ -29,6 +30,8 @@ class DrawSceneController(QObject):
                 selected_item.hover_leave_process()
 
         self._model.cur_selected_bones = bones
+        # 发送给toolbar
+        SIGNAL_BUS.select_bone.emit(bones)
 
     def slot_add_bone(self, bone: Bone, parent: Bone):
         self._model.bone_tree.add_bone(bone, parent)

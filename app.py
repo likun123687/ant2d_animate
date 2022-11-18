@@ -1,4 +1,5 @@
 import sys
+import weakref
 
 from PySide6.QtCore import Qt, QSize
 from PySide6.QtWidgets import (
@@ -7,6 +8,8 @@ from PySide6.QtWidgets import (
     QDockWidget, QStackedLayout, QWidget, )
 
 from common.signal_bus import SIGNAL_BUS
+from controllers.tool_bar_controller import ToolBarController
+from models.tool_bar_model import ToolBarModel
 from views.dock_title_bar import DockTitleBar
 from views.panels.draw_order_panel import DrawOrderPanel
 from views.panels.library_panel import LibraryPanel
@@ -34,7 +37,9 @@ class MainWindow(QMainWindow):
         self._stack_layout = QStackedLayout()
         self._stack_layout.addWidget(MainCanvas())
         self._central_widget.setLayout(self._stack_layout)
-        self._tool_bar = ToolBar(self)
+        model = ToolBarModel()
+        controller = ToolBarController(model)
+        self._tool_bar = ToolBar(weakref.ref(self), controller, model)
 
         self.setStatusBar(QStatusBar(self))
 

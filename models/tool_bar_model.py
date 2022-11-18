@@ -20,3 +20,13 @@ class ToolBarModel(QObject):
     @visual_property.setter
     def visual_property(self, value: Optional[VisualProperty]):
         pass
+
+    @property
+    def cur_selected_item(self):
+        return self._cur_selected_item
+
+    @cur_selected_item.setter
+    def cur_selected_item(self, value):
+        self._cur_selected_item = value
+
+
