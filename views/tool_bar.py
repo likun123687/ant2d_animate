@@ -1,27 +1,25 @@
 from _weakref import ReferenceType
-from typing import Optional, Union
+from typing import Optional
 
 from PySide6.QtCore import QSize
-from PySide6.QtGui import QAction, QIcon
+from PySide6.QtGui import QAction, QIcon, QPalette, QColor
 from PySide6.QtWidgets import QMainWindow, QToolBar, QComboBox, QDoubleSpinBox
 
-from controllers.tool_bar_controller import ToolBarController
-from models.tool_bar_model import ToolBarModel
-from views.bone import Bone
-from views.texture_item import TextureItem
+from common.signal_bus import SIGNAL_BUS
+from views.property import PropertyType
 
 
 class ToolBar:
-    def __init__(self, main_window: ReferenceType[QMainWindow], controller, model):
+    def __init__(self, main_window: ReferenceType[QMainWindow]):
         self._main_window: ReferenceType[QMainWindow] = main_window
-        self._controller: Optional[ToolBarController] = controller
-        self._model: Optional[ToolBarModel] = model
+        self._pos_x_spin_box: Optional[QDoubleSpinBox] = None
+        self._pos_y_spin_box: Optional[QDoubleSpinBox] = None
+        self._angle_spin_box: Optional[QDoubleSpinBox] = None
 
         self.create_tool_bar1()
         self.create_tool_bar2()
         self.create_tool_bar3()
 
-        self._controller.slot_item_property_changed_from_scene.connect(self.slot_selected_item_changed)
     def create_tool_bar1(self):
         toolbar = QToolBar("My main toolbar")
         toolbar.setIconSize(QSize(16, 16))
@@ -84,19 +82,26 @@ class ToolBar:
         toolbar.setIconSize(QSize(16, 16))
         self._main_window().addToolBar(toolbar)
         # add move tool
-        button_action = QAction(QIcon("bug.png"), "Move", self._main_window())
+        button_action = QAction(QIcon("test.png"), "Move", self._main_window())
         button_action.setStatusTip("Move")
         button_action.setToolTip("Move")
         button_action.setCheckable(True)
         toolbar.addAction(button_action)
 
         widget = QDoubleSpinBox()
+        widget.setRange(-999999.00, 999999.00)
         toolbar.addWidget(widget)
+        self._pos_x_spin_box = widget
+        self._pos_x_spin_box.valueChanged.connect(self.slot_pos_x_changed)
 
         widget = QDoubleSpinBox()
+        widget.setRange(-999999.00, 999999.00)
         toolbar.addWidget(widget)
+        self._pos_y_spin_box = widget
+        self._pos_y_spin_box.valueChanged.connect(self.slot_pos_y_changed)
 
-        button_action = QAction(QIcon("bug.png"), "Move", self._main_window())
+        icon = QIcon("test.png")
+        button_action = QAction(icon, "Move", self._main_window())
         button_action.setStatusTip("Move")
         button_action.setToolTip("Move")
         button_action.setCheckable(True)
@@ -105,18 +110,22 @@ class ToolBar:
         toolbar.addSeparator()
 
         # add rotate tool
-        button_action = QAction(QIcon("bug.png"), "Rotate", self._main_window())
+        button_action = QAction(QIcon("rotate.png"), "Rotate", self._main_window())
         button_action.setStatusTip("Rotate")
         button_action.setToolTip("Rotate")
         button_action.setCheckable(True)
         toolbar.addAction(button_action)
 
         widget = QDoubleSpinBox()
+        widget.setRange(-179.00, 180.00)
+        self._angle_spin_box = widget
+        self._angle_spin_box.valueChanged.connect(self.slot_angle_changed)
+
         toolbar.addWidget(widget)
 
-        button_action = QAction(QIcon("bug.png"), "Size", self._main_window())
-        button_action.setStatusTip("Select")
-        button_action.setToolTip("Select")
+        button_action = QAction(QIcon("rotate.png"), "Rotate", self._main_window())
+        button_action.setStatusTip("Rotate")
+        button_action.setToolTip("Rotate")
         button_action.setCheckable(True)
         toolbar.addAction(button_action)
 
@@ -154,20 +163,22 @@ class ToolBar:
         toolbar.addAction(button_action)
 
     @property
-    def model(self):
-        return self._model
-
-    @model.setter
-    def model(self, value):
-        self._model = value
+    def pos_x_spin_box(self):
+        return self._pos_x_spin_box
 
     @property
-    def controller(self):
-        return self._controller
+    def pos_y_spin_box(self):
+        return self._pos_y_spin_box
 
-    @controller.setter
-    def controller(self, value):
-        self._controller = value
+    @property
+    def angle_spin_box(self):
+        return self._angle_spin_box
 
-    def slot_selected_item_changed(self, item: Union[Bone, TextureItem, None]):
-        print(item)
+    def slot_pos_x_changed(self, d):
+        SIGNAL_BUS.signal_item_property_changed.emit(d, PropertyType.POS_X, "from_toolbar")
+
+    def slot_pos_y_changed(self, d):
+        SIGNAL_BUS.signal_item_property_changed.emit(d, PropertyType.POS_Y, "from_toolbar")
+
+    def slot_angle_changed(self, d):
+        SIGNAL_BUS.signal_item_property_changed.emit(d, PropertyType.ANGLE, "from_toolbar")

@@ -82,7 +82,6 @@ class BoneTree:
             parent_node = self._node_list[parent.bone_num]
 
         self._node_list[bone.bone_num] = Node(bone, parent_node)
-        print("add bone ", self._node_list)
 
     def del_bone(self, bone: Bone):
         """

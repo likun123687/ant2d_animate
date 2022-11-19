@@ -1,32 +1,58 @@
-from typing import Union
-
-from PySide6.QtCore import QObject, Signal
-
 from common.signal_bus import SIGNAL_BUS
 from models.tool_bar_model import ToolBarModel
 from views.bone import Bone
-from views.texture_item import TextureItem
+from views.property import PropertyType
+from views.tool_bar import ToolBar
 
 
-class ToolBarController(QObject):
-    signal_item_property_changed_from_scene = Signal(Union[Bone, TextureItem, None])
-
-    def __init__(self, model: ToolBarModel):
+class ToolBarController:
+    def __init__(self, view: ToolBar, model: ToolBarModel):
         super().__init__()
-        self._model = model
-        SIGNAL_BUS.select_bone.connect(self.slot_item_property_changed_from_scene)
+        self._view: ToolBar = view
+        self._model: ToolBarModel = model
 
+    def slot_items_property_changed(self, value: float, p_type: PropertyType, source: str) -> None:
+        # print(value, p_type, source)
 
-    def slot_item_property_changed_from_scene(self, item: list) -> None:
-        """
-        :param item:
-        :return:
-        """
-        self._model.cur_selected_item = item
         # 通知view
+        if p_type == PropertyType.POS_X:
+            self._model.visual_property.position.setX(value)
 
-    def slot_item_property_changed_from_bar(self):
-        """
-        在工具条中修改了属性
-        :return:
-        """
+        if p_type == PropertyType.POS_Y:
+            self._model.visual_property.position.setY(value)
+
+        if p_type == PropertyType.ANGLE:
+            SIGNAL_BUS.signal_update_sub_bone_scene_angle.emit(self._model.cur_selected_item,
+                                                               value - self._model.visual_property.local_angle)
+            self._model.visual_property.local_angle = value
+
+        self._model.cur_selected_item.notify_visual_property_changed()
+
+    def slot_selected_items_changed(self, items: list):
+        if len(items) > 1 or len(items) == 0:
+            return
+
+        item = items[0]
+        self._model.cur_selected_item = items[0]
+        if isinstance(item, Bone):
+            self.set_toolbar_value(item)
+
+    def slot_items_property_changed_from_scene(self, item):
+        if isinstance(item, Bone) and item is self._model.cur_selected_item:
+            self.set_toolbar_value(item)
+
+    def set_toolbar_value(self, item):
+        visual_property = item.visual_property
+        self._model.visual_property = visual_property
+        try:
+            self._view.pos_x_spin_box.blockSignals(True)
+            self._view.pos_y_spin_box.blockSignals(True)
+            self._view.angle_spin_box.blockSignals(True)
+
+            self._view.pos_x_spin_box.setValue(visual_property.position.x())
+            self._view.pos_y_spin_box.setValue(visual_property.position.y())
+            self._view.angle_spin_box.setValue(visual_property.local_angle)
+        finally:
+            self._view.pos_x_spin_box.blockSignals(False)
+            self._view.pos_y_spin_box.blockSignals(False)
+            self._view.angle_spin_box.blockSignals(False)

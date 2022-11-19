@@ -19,11 +19,7 @@ class CanvasTabItem(QWidget):
         super().__init__(*args, **kwargs)
         # Defining a scene rect of 400x200, with its origin at 0,0.
         # If we don't set this on creation, we can set it later with .setSceneRect
-        self.scene = DrawScene(-400, -200, 800, 400)
-        model = DrawSceneModel()
-
-        self.scene.model = model
-        self.scene.controller = DrawSceneController(model)
+        self._scene = DrawScene(-400, -200, 800, 400)
 
         # self.scene = QGraphicsScene(0, 0, 800, 400)
         # self.scene = QGraphicsScene()
@@ -49,11 +45,11 @@ class CanvasTabItem(QWidget):
         line1 = QGraphicsLineItem()
         line1.setLine(-100, -100, 0, 0)
 
-        self.scene.addItem(rect)
-        self.scene.addItem(line)
-        self.scene.addItem(line1)
+        self._scene.addItem(rect)
+        self._scene.addItem(line)
+        self._scene.addItem(line1)
 
-        view = DrawView(self.scene)
+        view = DrawView(self._scene)
 
         # h_ruler = RuleBar(Qt.Horizontal, view)
         # v_ruler = RuleBar(Qt.Vertical, view)
@@ -109,8 +105,7 @@ class CanvasTabItem(QWidget):
         # # self.bottom_center_bar.setGeometry(20,20, 200, 50)
         # self.bottom_center_bar.setStyleSheet("background-color: blue")
 
-        SIGNAL_BUS.select_bone_from_scene_panel.connect(self.scene.select_bone_from_scene_panel)
-        SIGNAL_BUS.add_texture_to_bone.connect(self.scene.add_texture_to_bone)
+
 
     # def resizeEvent(self, event):
     #     print("canvas tab item view resize")
@@ -118,3 +113,7 @@ class CanvasTabItem(QWidget):
     #     self.right_tool_bar.setGeometry(self.width() - 50, 20, 50, 10)
     #     self.left_tool_bar.setGeometry(0, self.height() - 10, 50, 10)
     #     self.bottom_center_bar.setGeometry(self.width() / 2 - 200 / 2, self.height() - 50, 200, 50)
+
+    @property
+    def scene(self):
+        return self._scene

@@ -1,14 +1,10 @@
 from typing import Optional
 
-from PySide6.QtCore import QObject, Signal
-
 from views.bone import Bone
 from views.bone_tree import BoneTree
 
 
-class DrawSceneModel(QObject):
-    select_bone = Signal(list)  # 增加了一个Bone
-
+class DrawSceneModel:
     def __init__(self):
         super().__init__()
         self._cur_selected_bones: list[Bone] = []  # 当前选中的bone

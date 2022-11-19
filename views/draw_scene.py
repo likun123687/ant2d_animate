@@ -1,6 +1,6 @@
 import math
 import weakref
-from typing import Union, Optional
+from typing import Union
 
 from PySide6 import QtGui
 from PySide6.QtCore import QRectF, QPointF, QByteArray, QIODevice, QDataStream, Slot
@@ -9,11 +9,8 @@ from PySide6.QtGui import QColor, QPen, QPainter, QPixmap
 from PySide6.QtWidgets import QGraphicsScene, QGraphicsSceneDragDropEvent, QGraphicsSceneMouseEvent
 
 from common.signal_bus import SIGNAL_BUS
-from controllers.draw_scene_controller import DrawSceneController
-from models.draw_scene_model import DrawSceneModel
 from views.bone import Bone, RING_RADIUS, RING_BORDER_WIDTH, Arrow
 from views.bone_handle import BoneHandle, HANDLER_RADIUS
-from views.bone_tree import BoneTree
 from views.connect_arrow import ConnectArrow
 from views.rotate_bar import RotateBar
 from views.texture_item import TextureItem
@@ -36,8 +33,6 @@ class DrawScene(QGraphicsScene):
         self._arrow_begin_drag_pos: Union[QPointF, None] = None  # 箭头开始拖动时的鼠标位置
         # self._cur_selected_bone: Optional[Bone] = None  # 当前选中的bone
         # self._old_rect = self.itemsBoundingRect()
-        self._controller: Optional[DrawSceneController] = None
-        self._model: Optional[DrawSceneModel] = None
 
     def drawBackground(self, painter, rect):
         """
@@ -104,10 +99,8 @@ class DrawScene(QGraphicsScene):
         else:
             return
 
-        # 记录当前父bone
-        self._parent_bone = target_bone
-        # 发送给controller
-        self._controller.signal_selected_bone_change.emit([target_bone])
+        # 发送signal
+        SIGNAL_BUS.signal_selected_bone_changed.emit([target_bone])
 
     def _add_bone(self, event: QGraphicsSceneMouseEvent):
         """
@@ -135,10 +128,10 @@ class DrawScene(QGraphicsScene):
         rotate_bar = RotateBar(event.scenePos())
         self.addItem(rotate_bar)
 
-        # 发送给controller
-        self._controller.signal_add_bone.emit(self._cur_bone, self._parent_bone)
+        # 发送给signal
+        SIGNAL_BUS.signal_add_bone.emit(self._cur_bone, self._parent_bone)
         # 默认选中新增的bone
-        self._controller.signal_selected_bone_change.emit([self._cur_bone])
+        SIGNAL_BUS.signal_selected_bone_changed.emit([self._cur_bone])
 
         self._is_adding_bone = True
 
@@ -205,10 +198,10 @@ class DrawScene(QGraphicsScene):
             return
 
         if self._last_hover_bone:
-            self.controller.signal_hover_bone_leave.emit(self._last_hover_bone)
+            SIGNAL_BUS.signal_hover_bone_leave.emit(self._last_hover_bone)
 
         # do sth
-        self.controller.signal_hover_bone_enter.emit(item)
+        SIGNAL_BUS.signal_hover_bone_enter.emit(item)
 
         self._last_hover_bone = item
 
@@ -217,7 +210,7 @@ class DrawScene(QGraphicsScene):
             return
 
         # do sth
-        self.controller.signal_hover_bone_leave.emit(self._last_hover_bone)
+        SIGNAL_BUS.signal_hover_bone_leave.emit(self._last_hover_bone)
 
         self._last_hover_bone = None
 
@@ -257,8 +250,6 @@ class DrawScene(QGraphicsScene):
         if event.button() == Qt.LeftButton:
             self.auto_adjust()
             if self._is_adding_bone:
-                self._parent_bone = self._cur_bone
-
                 self._bone_start_point = None
                 self._cur_bone = None
                 self._is_adding_bone = False
@@ -326,35 +317,9 @@ class DrawScene(QGraphicsScene):
             event.ignore()
 
     @property
-    def model(self):
-        return self._model
+    def parent_bone(self):
+        return self._parent_bone
 
-    @model.setter
-    def model(self, value):
-        self._model = value
-
-    @property
-    def controller(self):
-        return self._controller
-
-    @controller.setter
-    def controller(self, value):
-        self._controller = value
-
-    @Slot(Bone)
-    def select_bone_from_scene_panel(self, bone: Bone) -> None:
-        bone.clicked()
-        if self._cur_selected_bone and bone != self._cur_selected_bone:
-            self._cur_selected_bone.is_selected = False
-            self._cur_selected_bone.hover_leave_process()
-
-        self._cur_selected_bone = bone
+    @parent_bone.setter
+    def parent_bone(self, bone):
         self._parent_bone = bone
-        self._cur_selected_bone.hover_leave_process()
-
-    @Slot(Bone)
-    def add_texture_to_bone(self, bone: Bone, pixmap: QPixmap):
-        texture_item = TextureItem(bone.scenePos(), pixmap)
-        self.addItem(texture_item)
-        bone.texture_item = texture_item
-        texture_item.bind_bone = weakref.ref(bone)

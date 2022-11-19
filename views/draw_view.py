@@ -155,7 +155,3 @@ class DrawView(QGraphicsView):
             return
 
         event.ignore()
-
-        # ps = self.mapToScene(event.pos())
-        # self._h_ruler.update_position(event.pos())
-        # self._v_ruler.update_position(event.pos())

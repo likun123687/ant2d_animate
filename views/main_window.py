@@ -1,19 +1,14 @@
-import sys
 import weakref
 
 from PySide6.QtCore import Qt, QSize
 from PySide6.QtWidgets import (
-    QMainWindow, QApplication,
-    QStatusBar,
+    QMainWindow, QStatusBar,
     QDockWidget, QStackedLayout, QWidget, )
 
-from common.signal_bus import SIGNAL_BUS
-from controllers.tool_bar_controller import ToolBarController
-from models.tool_bar_model import ToolBarModel
 from views.dock_title_bar import DockTitleBar
+from views.main_canvas import MainCanvas
 from views.panels.draw_order_panel import DrawOrderPanel
 from views.panels.library_panel import LibraryPanel
-from views.main_canvas import MainCanvas
 from views.panels.property_panel import PropertyPanel
 from views.panels.scene_panel import ScenePanel
 from views.tool_bar import ToolBar
@@ -35,11 +30,10 @@ class MainWindow(QMainWindow):
         self.setCentralWidget(self._central_widget)
 
         self._stack_layout = QStackedLayout()
-        self._stack_layout.addWidget(MainCanvas())
+        self._main_canvas = MainCanvas()
+        self._stack_layout.addWidget(self._main_canvas)
         self._central_widget.setLayout(self._stack_layout)
-        model = ToolBarModel()
-        controller = ToolBarController(model)
-        self._tool_bar = ToolBar(weakref.ref(self), controller, model)
+        self._tool_bar = ToolBar(weakref.ref(self))
 
         self.setStatusBar(QStatusBar(self))
 
@@ -78,10 +72,24 @@ class MainWindow(QMainWindow):
         self._library_panel_dock.setStyleSheet("QDockWidget::title{padding-left: 0px; margin-left:0px}")
         self.addDockWidget(Qt.RightDockWidgetArea, self._library_panel_dock)
 
-        self._connect_signal_to_slot()
-
     def onMyToolBarButtonClick(self, s):
         print("click", s)
+
+    @property
+    def tool_bar(self):
+        return self._tool_bar
+
+    @tool_bar.setter
+    def tool_bar(self, value):
+        self._tool_bar = value
+
+    @property
+    def main_canvas(self):
+        return self._main_canvas
+
+    @property
+    def scene_panel(self):
+        return self._scene_panel
 
     # def resizeEvent(self, event):
     # print("Window has been resized")
@@ -95,14 +103,3 @@ class MainWindow(QMainWindow):
     # self.view.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
     # self.view.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
     # self.view.fitInView(-(self.width()/2), -(self.height()/2), self.width(), self.height(), Qt.KeepAspectRatio)
-
-
-    def _connect_signal_to_slot(self):
-        SIGNAL_BUS.signal_add_bone.connect(self._scene_panel.tree.on_bone_added)
-        SIGNAL_BUS.select_bone.connect(self._scene_panel.tree.on_bone_selected)
-
-
-app = QApplication(sys.argv)
-w = MainWindow()
-w.show()
-app.exec()

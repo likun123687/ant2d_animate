@@ -1,5 +1,5 @@
-from PySide6.QtCore import Qt, Slot, QByteArray, QDataStream, QIODevice
-from PySide6.QtGui import QPalette, QColor, QIcon, QBrush, QPixmap, QDragEnterEvent, QDragMoveEvent, QDropEvent
+from PySide6.QtCore import Qt, QByteArray, QDataStream, QIODevice, Slot
+from PySide6.QtGui import QPalette, QColor, QIcon, QPixmap, QDragEnterEvent, QDragMoveEvent, QDropEvent
 from PySide6.QtWidgets import (
     QLabel,
     QTreeWidget,
@@ -63,17 +63,17 @@ class SceneTreeWidget(QTreeWidget):
         super().__init__(*args, **kwargs)
         self.header().setSectionResizeMode(QHeaderView.ResizeToContents)
         # self.header().setStretchLastSection(False)
-        self.setIndentation(5)
+        self.setIndentation(10)
         self.setDragEnabled(True)
         self.setAcceptDrops(True)
         self.setMouseTracking(True)
 
         # self.setStyleSheet(
-        #     "QTreeView::branch::selected{background-color:green;} QTreeView::item::selected{background-color:green;} ")
+        #     "QTreeView::branch::selected{background-color:green;}
+        #     QTreeView::item::selected{background-color:green;} ")
 
-        self._item_map: dict[int, QTreeWidgetItem] = {}
         self._init_ui()
-        self.currentItemChanged.connect(self.cur_item_changed_cb)
+        self.currentItemChanged.connect(self.slot_cur_item_changed)
 
     def _init_ui(self):
         # 设置列数
@@ -166,32 +166,10 @@ class SceneTreeWidget(QTreeWidget):
         # 加载根节点的所有属性与子控件
         self.addTopLevelItem(root)
 
-    def on_bone_added(self, bone: Bone, parent: Bone) -> None:
-        """
-        :param bone:
-        :param parent:
-        :return:
-        """
-        if parent:
-            if parent.bone_num in self._item_map:
-                parent_item = self._item_map[parent.bone_num]
-                item = SceneBoneItem(bone, self, parent_item)
-                self.setCurrentItem(item)
-                self._item_map[bone.bone_num] = item
-
-        else:
-            item = SceneBoneItem(bone, self)
-            self.setCurrentItem(item)
-            self._item_map[bone.bone_num] = item
-
-    def on_bone_selected(self, bone: Bone) -> None:
-        item = self._item_map[bone.bone_num]
-        self.setCurrentItem(item)
-
     @Slot(QTreeWidgetItem, QTreeWidgetItem)
-    def cur_item_changed_cb(self, current: QTreeWidgetItem, previous: QTreeWidgetItem):
+    def slot_cur_item_changed(self, current: QTreeWidgetItem, previous: QTreeWidgetItem):
         if isinstance(current, SceneBoneItem):
-            SIGNAL_BUS.select_bone_from_scene_panel.emit(current.bone)
+            SIGNAL_BUS.signal_selected_bone_changed.emit([current.bone])
 
     def dragEnterEvent(self, event: QDragEnterEvent) -> None:
         if event.mimeData().hasFormat("application/x-slot_data"):
@@ -219,7 +197,7 @@ class SceneTreeWidget(QTreeWidget):
                 data_stream >> pixmap
 
                 item.addChild(SceneAssetItem())
-                SIGNAL_BUS.add_texture_to_bone.emit(item.bone, pixmap)
+                SIGNAL_BUS.signal_add_texture_to_bone.emit(item.bone, pixmap)
 
                 event.setDropAction(Qt.CopyAction)
                 event.accept()

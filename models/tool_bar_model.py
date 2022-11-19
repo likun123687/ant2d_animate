@@ -1,25 +1,24 @@
 from typing import Optional, Union
 
-from PySide6.QtCore import QObject
-
 from views.bone import VisualProperty, Bone
 from views.texture_item import TextureItem
 
 
-class ToolBarModel(QObject):
+class ToolBarModel:
     def __init__(self):
         super().__init__()
         self._item_width_height_bound: bool = False
         self._cur_edit_mode: bool = False
         self._cur_selected_item: Union[Bone, TextureItem, None] = None
+        self._tmp_visual_property: Optional[VisualProperty] = None
 
     @property
     def visual_property(self):
-        return
+        return self._tmp_visual_property
 
     @visual_property.setter
     def visual_property(self, value: Optional[VisualProperty]):
-        pass
+        self._tmp_visual_property = value
 
     @property
     def cur_selected_item(self):
@@ -28,5 +27,3 @@ class ToolBarModel(QObject):
     @cur_selected_item.setter
     def cur_selected_item(self, value):
         self._cur_selected_item = value
-
-

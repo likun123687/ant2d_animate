@@ -1,5 +1,13 @@
 from PySide6.QtCore import QPointF
 
+from enum import Enum
+
+
+class PropertyType(Enum):
+    POS_X = 0
+    POS_Y = 1
+    ANGLE = 2
+
 
 class VisualProperty:
     def __init__(self):

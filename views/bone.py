@@ -1,3 +1,4 @@
+import copy
 from typing import Union, Optional
 
 from PySide6.QtCore import Qt, QRectF, QPointF
@@ -9,6 +10,7 @@ from PySide6.QtWidgets import (
     QGraphicsSceneHoverEvent
 )
 
+from common.signal_bus import SIGNAL_BUS
 from views.bone_handle import BoneHandle
 from views.connect_arrow import ConnectArrow
 from views.property import VisualProperty
@@ -69,12 +71,17 @@ class DragPoint(QGraphicsEllipseItem):
 class Arrow(QGraphicsPolygonItem):
     def __init__(self, polygon, parent=None):
         super().__init__(polygon, parent)
-
         brush = QBrush(Qt.yellow)
         self.setBrush(brush)
-
-        # self.setAcceptHoverEvents(True)
         self.setFlags(QGraphicsItem.ItemSendsGeometryChanges | QGraphicsItem.ItemSendsScenePositionChanges)
+
+    def itemChange(self, change, value):
+        if change == QGraphicsItem.ItemRotationChange:
+            bone = self.parentItem()
+            if bone:
+                SIGNAL_BUS.signal_items_property_changed_from_scene.emit(bone)
+
+        return super().itemChange(change, value)
 
 
 class Bone(Ring):
@@ -140,6 +147,7 @@ class Bone(Ring):
         self._texture_item: Optional[TextureItem] = None
         self._scene_width_scale: float = 1
         self._scene_height_scale: float = 1
+        self._visual_property: Optional[VisualProperty] = VisualProperty()
         self.setZValue(2)
 
         if parent is not None:
@@ -155,7 +163,6 @@ class Bone(Ring):
             local_angle = scene_angle - parent_bone.arrow_angle_to_scene
         else:
             local_angle = scene_angle
-        # print("scene_angle", scene_angle, "local_angle", local_angle)
         self._arrow.setRotation(local_angle)
 
         # if distance <= RING_RADIUS - RING_BORDER_WIDTH / 2:
@@ -202,27 +209,18 @@ class Bone(Ring):
         self._arrow.setBrush(brush)
         self._arrow.update()
 
-    def clicked(self):
-        self._is_selected = True
-        # brush = self.brush()
-        # if brush is None:
-        #     brush = QBrush()
-
-        # brush = QBrush(Qt.yellow)
-        #
-        # self.setBrush(brush)
-        # self.update()
-        #
-        # self._arrow.setBrush(brush)
-        # self._arrow.update()
-
     def itemChange(self, change, value):
         if change == QGraphicsItem.ItemPositionHasChanged:
+            try:
+                if self._is_selected:
+                    SIGNAL_BUS.signal_items_property_changed_from_scene.emit(self)
+            except AttributeError:
+                pass
+
             parent_bone = self.parent_bone()
             if parent_bone is None:
                 return super().itemChange(change, value)
 
-            print("bone pos change", value)
             try:
                 if self._connect_arrow is not None:
                     self._connect_arrow.update_line(parent_bone.tail_point_pos, value)
@@ -234,10 +232,7 @@ class Bone(Ring):
         elif change == QGraphicsItem.ItemScenePositionHasChanged:
             # print("bone scene pos change", self._handle, value)
             try:
-                print("scene pos11", self._handle.pos())
-                print("pos", value)
                 self._handle.setPos(value.x(), value.y())
-                print("scene pos22", self._handle.pos())
                 if self._texture_item:
                     self._texture_item.bone_pos = value
 
@@ -292,6 +287,13 @@ class Bone(Ring):
     @is_selected.setter
     def is_selected(self, value: bool):
         self._is_selected = value
+        if self._is_selected:
+            brush = QBrush(Qt.yellow)
+            self.setBrush(brush)
+            self.update()
+
+            self._arrow.setBrush(brush)
+            self._arrow.update()
 
     @property
     def texture_item(self) -> TextureItem:
@@ -301,9 +303,24 @@ class Bone(Ring):
     def texture_item(self, texture_item: TextureItem) -> None:
         self._texture_item = texture_item
 
+    def disable_changes(self):
+        self.setFlags(QGraphicsItem.ItemIsMovable)
+        self._arrow.setFlags(QGraphicsItem.ItemIsMovable)
+
+    def enable_changes(self):
+        self.setFlags(
+            QGraphicsItem.ItemIsMovable | QGraphicsItem.ItemSendsGeometryChanges
+            | QGraphicsItem.ItemSendsScenePositionChanges)
+        self._arrow.setFlags(
+            QGraphicsItem.ItemSendsGeometryChanges | QGraphicsItem.ItemSendsScenePositionChanges)
+
     @property
     def scene_angle(self):
         return self._arrow_angle_to_scene
+
+    @scene_angle.setter
+    def scene_angle(self, value):
+        self._arrow_angle_to_scene = value
 
     @property
     def scene_width_scale(self):
@@ -313,10 +330,11 @@ class Bone(Ring):
     def scene_height_scale(self):
         return self._scene_height_scale
 
+    @property
     def visual_property(self) -> VisualProperty:
-        p = VisualProperty()
+        p = self._visual_property
         p.position = self.pos()
-        p.local_angle = self.rotation()
+        p.local_angle = self._arrow.rotation()
         p.scene_angle = self._arrow_angle_to_scene
 
         rect = self.boundingRect()
@@ -324,7 +342,15 @@ class Bone(Ring):
         p.height = rect.height()
         p.local_width_scale = self.transform().m11()
         p.local_height_scale = self.transform().m22()
-
         p.scene_width_scale = self._scene_width_scale
         p.scene_height_scale = self._scene_height_scale
         return p
+
+    def notify_visual_property_changed(self):
+        try:
+            self.disable_changes()  # no need send item change info again
+            p = self._visual_property
+            self.setPos(p.position.x(), p.position.y())
+            self._arrow.setRotation(p.local_angle)
+        finally:
+            self.enable_changes()
