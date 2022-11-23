@@ -1,15 +1,20 @@
 import weakref
+from typing import Union
 
-from PySide6.QtCore import Slot
+from PySide6.QtCore import Slot, Qt
 from PySide6.QtGui import QPixmap
+from PySide6.QtWidgets import QGraphicsView
+from prompt_toolkit.cursor_shapes import CursorShape
 
 from models.draw_scene_model import DrawSceneModel
 from views.bone import Bone
 from views.draw_scene import DrawScene
+from views.property import EditMode
 from views.texture_item import TextureItem
 
 
 class DrawSceneController:
+
     def __init__(self, view: DrawScene, model: DrawSceneModel):
         super().__init__()
         self._view: DrawScene = view
@@ -49,6 +54,10 @@ class DrawSceneController:
                 if up_bone.connect_arrow:
                     up_bone.connect_arrow.show()
 
+        # 记录当前hover bone
+        self._model.cur_hover_bone = bone
+        self.set_cursor()
+
     def slot_hover_bone_leave(self, bone: Bone):
         bone.hover_leave_process()
         if bone.connect_arrow:
@@ -79,3 +88,44 @@ class DrawSceneController:
         if node:
             for sub_bone in node.get_all_sub_bones():
                 sub_bone.scene_angle = sub_bone.scene_angle + offset
+
+    def get_draw_view(self) -> QGraphicsView:
+        return self._view.views()[0]
+
+    def set_cursor(self):
+        draw_view = self.get_draw_view()
+        cursor_list = self._model.cursor_map[self._model.cur_edit_mode]
+        try:
+            if len(self._model.cur_selected_bones) == 0:  # 没有选中
+                result = cursor_list[0]
+            else:
+                if not self._model.cur_hover_bone:  # 有选中 hover 空白
+                    result = cursor_list[2]
+                else:
+                    if self._model.cur_hover_bone in self._model.cur_selected_bones:
+                        # 有选中 hover 选中bone
+                        result = cursor_list[1]
+                    else:
+                        # 有选中 hover 没选中bone
+                        result = cursor_list[3]
+            cursor = result[1]
+            if not cursor:
+                cursor = QPixmap(result[0])
+            draw_view.setCursor(cursor)
+        except IndexError:
+            pass
+
+    def slot_hover_space(self):
+        """
+        hover空白
+        """
+        print("hover empty space")
+        self._model.cur_hover_bone = None
+        self.set_cursor()
+
+    def slot_change_mode(self, cur_model: EditMode):
+        """
+        改变toolbar的选择模式
+        """
+        self._model.cur_edit_mode = cur_model
+        self.set_cursor()

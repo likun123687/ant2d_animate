@@ -1,7 +1,7 @@
 from common.signal_bus import SIGNAL_BUS
 from models.tool_bar_model import ToolBarModel
 from views.bone import Bone
-from views.property import PropertyType
+from views.property import PropertyType, EditMode
 from views.tool_bar import ToolBar
 
 
@@ -56,3 +56,15 @@ class ToolBarController:
             self._view.pos_x_spin_box.blockSignals(False)
             self._view.pos_y_spin_box.blockSignals(False)
             self._view.angle_spin_box.blockSignals(False)
+
+    def slot_change_mode(self, cur_model: EditMode):
+        """
+        改变toolbar的选择模式
+        """
+        self._model.cur_edit_mode = cur_model
+        for mode, action in self._view.tool_map.items():
+            if mode != cur_model:
+                action.setChecked(False)
+
+
+

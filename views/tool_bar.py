@@ -2,11 +2,11 @@ from _weakref import ReferenceType
 from typing import Optional
 
 from PySide6.QtCore import QSize
-from PySide6.QtGui import QAction, QIcon, QPalette, QColor
-from PySide6.QtWidgets import QMainWindow, QToolBar, QComboBox, QDoubleSpinBox
+from PySide6.QtGui import QAction, QIcon
+from PySide6.QtWidgets import QMainWindow, QToolBar, QComboBox, QDoubleSpinBox, QWidget
 
 from common.signal_bus import SIGNAL_BUS
-from views.property import PropertyType
+from views.property import PropertyType, EditMode
 
 
 class ToolBar:
@@ -15,6 +15,10 @@ class ToolBar:
         self._pos_x_spin_box: Optional[QDoubleSpinBox] = None
         self._pos_y_spin_box: Optional[QDoubleSpinBox] = None
         self._angle_spin_box: Optional[QDoubleSpinBox] = None
+
+        self._select_tool: Optional[QAction] = None
+        self._create_bone_tool: Optional[QAction] = None
+        self._tool_map: dict[EditMode, QAction] = {}
 
         self.create_tool_bar1()
         self.create_tool_bar2()
@@ -26,55 +30,57 @@ class ToolBar:
         toolbar.setMovable(True)
         self._main_window().addToolBar(toolbar)
 
-        button_action = QAction(QIcon("bug.png"), "Armature", self._main_window())
+        button_action = QAction(QIcon("assets/icons/bug.png"), "Armature", self._main_window())
         button_action.setStatusTip("Armature")
         button_action.setToolTip("Armature")
         button_action.setCheckable(True)
         toolbar.addAction(button_action)
         toolbar.addSeparator()
 
-        button_action1 = QAction(QIcon("bug.png"), "Animation", self._main_window())
+        button_action1 = QAction(QIcon("assets/icons/bug.png"), "Animation", self._main_window())
         button_action1.setStatusTip("Animation")
         button_action1.setToolTip("Animation")
         button_action1.setCheckable(True)
         toolbar.addAction(button_action1)
+        toolbar.addSeparator()
 
     def create_tool_bar2(self):
         toolbar = QToolBar("My main toolbar")
         toolbar.setIconSize(QSize(16, 16))
         self._main_window().addToolBar(toolbar)
-        button_action = QAction(QIcon("bug.png"), "Select", self._main_window())
+        button_action = QAction(QIcon("assets/icons/select.png"), "Select", self._main_window())
         button_action.setStatusTip("Select")
         button_action.setToolTip("Select")
+        button_action.setCheckable(True)
+        button_action.setChecked(True)
+        toolbar.addAction(button_action)
+        self._select_tool = button_action
+        self._select_tool.toggled.connect(self.select_tool_toggle)
+        self._tool_map[EditMode.SELECT] = self._select_tool
+        toolbar.addSeparator()
+
+        button_action = QAction(QIcon("assets/icons/bug.png"), "Pose", self._main_window())
+        button_action.setStatusTip("Pose")
+        button_action.setToolTip("Pose")
         button_action.setCheckable(True)
         toolbar.addAction(button_action)
         toolbar.addSeparator()
 
-        button_action1 = QAction(QIcon("bug.png"), "Pose", self._main_window())
-        button_action1.setStatusTip("Pose")
-        button_action1.setToolTip("Pose")
-        button_action1.setCheckable(True)
-        toolbar.addAction(button_action1)
-        toolbar.addSeparator()
+        button_action = QAction(QIcon("assets/icons/create_bone.png"), "Create Bone", self._main_window())
+        button_action.setStatusTip("Create Bone")
+        button_action.setToolTip("Create Bone")
+        button_action.setCheckable(True)
+        toolbar.addAction(button_action)
+        self._create_bone_tool = button_action
+        self._create_bone_tool.toggled.connect(self.create_bone_tool_toggle)
+        self._tool_map[EditMode.CREATE_BONE] = self._create_bone_tool
 
-        button_action2 = QAction(QIcon("bug.png"), "Create Bone", self._main_window())
-        button_action2.setStatusTip("Create Bone")
-        button_action2.setToolTip("Create Bone")
-        button_action2.setCheckable(True)
-        toolbar.addAction(button_action2)
-        toolbar.addSeparator()
-
-        button_action3 = QAction(QIcon("bug.png"), "Create Bone", self._main_window())
-        button_action3.setStatusTip("Create Bone")
-        button_action3.setToolTip("Create Bone")
-        button_action3.setCheckable(True)
-        toolbar.addAction(button_action2)
         toolbar.addSeparator()
 
         scale_list = QComboBox()
         scale_list.addItems(["One", "Two", "Three"])
         scale_list.setEditable(True)
-        scale_list.setInsertPolicy(QComboBox.NoInsert)
+        scale_list.setInsertPolicy(QComboBox.InsertPolicy.NoInsert)
         toolbar.addWidget(scale_list)
 
     def create_tool_bar3(self):
@@ -82,7 +88,7 @@ class ToolBar:
         toolbar.setIconSize(QSize(16, 16))
         self._main_window().addToolBar(toolbar)
         # add move tool
-        button_action = QAction(QIcon("test.png"), "Move", self._main_window())
+        button_action = QAction(QIcon("assets/icons/test.png"), "Move", self._main_window())
         button_action.setStatusTip("Move")
         button_action.setToolTip("Move")
         button_action.setCheckable(True)
@@ -100,7 +106,7 @@ class ToolBar:
         self._pos_y_spin_box = widget
         self._pos_y_spin_box.valueChanged.connect(self.slot_pos_y_changed)
 
-        icon = QIcon("test.png")
+        icon = QIcon("assets/icons/test.png")
         button_action = QAction(icon, "Move", self._main_window())
         button_action.setStatusTip("Move")
         button_action.setToolTip("Move")
@@ -110,7 +116,7 @@ class ToolBar:
         toolbar.addSeparator()
 
         # add rotate tool
-        button_action = QAction(QIcon("rotate.png"), "Rotate", self._main_window())
+        button_action = QAction(QIcon("assets/icons/rotate.png"), "Rotate", self._main_window())
         button_action.setStatusTip("Rotate")
         button_action.setToolTip("Rotate")
         button_action.setCheckable(True)
@@ -123,7 +129,7 @@ class ToolBar:
 
         toolbar.addWidget(widget)
 
-        button_action = QAction(QIcon("rotate.png"), "Rotate", self._main_window())
+        button_action = QAction(QIcon("assets/icons/rotate.png"), "Rotate", self._main_window())
         button_action.setStatusTip("Rotate")
         button_action.setToolTip("Rotate")
         button_action.setCheckable(True)
@@ -132,7 +138,7 @@ class ToolBar:
         toolbar.addSeparator()
 
         # add scale tool
-        button_action = QAction(QIcon("bug.png"), "Select", self._main_window())
+        button_action = QAction(QIcon("assets/icons/bug.png"), "Select", self._main_window())
         button_action.setStatusTip("Select")
         button_action.setToolTip("Select")
         button_action.setCheckable(True)
@@ -150,13 +156,13 @@ class ToolBar:
         widget = QDoubleSpinBox()
         toolbar.addWidget(widget)
 
-        button_action = QAction(QIcon("bug.png"), "Select", self._main_window())
+        button_action = QAction(QIcon("assets/icons/bug.png"), "Select", self._main_window())
         button_action.setStatusTip("Select")
         button_action.setToolTip("Select")
         button_action.setCheckable(True)
         toolbar.addAction(button_action)
 
-        button_action = QAction(QIcon("bug.png"), "Select", self._main_window())
+        button_action = QAction(QIcon("assets/icons/bug.png"), "Select", self._main_window())
         button_action.setStatusTip("Select")
         button_action.setToolTip("Select")
         button_action.setCheckable(True)
@@ -174,6 +180,18 @@ class ToolBar:
     def angle_spin_box(self):
         return self._angle_spin_box
 
+    @property
+    def select_tool(self):
+        return self._select_tool
+
+    @property
+    def create_bone_tool(self):
+        return self._create_bone_tool
+
+    @property
+    def tool_map(self) -> dict[int, QAction]:
+        return self._tool_map
+
     def slot_pos_x_changed(self, d):
         SIGNAL_BUS.signal_item_property_changed.emit(d, PropertyType.POS_X, "from_toolbar")
 
@@ -182,3 +200,11 @@ class ToolBar:
 
     def slot_angle_changed(self, d):
         SIGNAL_BUS.signal_item_property_changed.emit(d, PropertyType.ANGLE, "from_toolbar")
+
+    def select_tool_toggle(self, checked: bool):
+        if checked:
+            SIGNAL_BUS.signal_change_edit_mode.emit(EditMode.SELECT)
+
+    def create_bone_tool_toggle(self, checked: bool):
+        if checked:
+            SIGNAL_BUS.signal_change_edit_mode.emit(EditMode.CREATE_BONE)

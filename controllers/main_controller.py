@@ -28,6 +28,7 @@ class MainController:
         SIGNAL_BUS.signal_item_property_changed.connect(self._tool_bar_controller.slot_items_property_changed)
         SIGNAL_BUS.signal_items_property_changed_from_scene.connect(
             self._tool_bar_controller.slot_items_property_changed_from_scene)
+        SIGNAL_BUS.signal_change_edit_mode.connect(self._tool_bar_controller.slot_change_mode)
 
         # draw scene
         self._draw_scenes = {}
@@ -39,6 +40,9 @@ class MainController:
         SIGNAL_BUS.signal_add_texture_to_bone.connect(draw_scene_controller.slot_add_texture_to_bone)
         SIGNAL_BUS.signal_update_sub_bone_scene_angle.connect(draw_scene_controller.slot_update_bone_scene_angle)
         self._draw_scenes[1] = draw_scene_controller
+
+        SIGNAL_BUS.signal_change_edit_mode.connect(draw_scene_controller.slot_change_mode)
+        SIGNAL_BUS.signal_hover_space.connect(draw_scene_controller.slot_hover_space)
 
         # scene panel
         self._scene_panel_controller = ScenePanelController(self._view.scene_panel.tree, ScenePanelModel())

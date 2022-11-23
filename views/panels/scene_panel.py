@@ -13,10 +13,10 @@ from views.bone import Bone
 class SceneAssetItem(QTreeWidgetItem):
     def __init__(self, parent=None):
         super().__init__(parent)
-        self.setIcon(0, QIcon('./bug.png'))
+        self.setIcon(0, QIcon('assets/icons/bug.png'))
         self.setText(0, "0000")
 
-        self.setIcon(1, QIcon('./bug.png'))
+        self.setIcon(1, QIcon('assets/icons/bug.png'))
         self.setText(1, "1111")
 
 
@@ -30,7 +30,7 @@ class SceneBoneItem(QTreeWidgetItem):
 
     def _init_ui(self, tree: QTreeWidget):
         # 设置子节点1
-        self.setIcon(0, QIcon('./bug.png'))
+        self.setIcon(0, QIcon('assets/icons/bug.png'))
         self.setText(0, str(self._bone.bone_num))
 
         ctrl_btn = QWidget()
@@ -41,12 +41,12 @@ class SceneBoneItem(QTreeWidgetItem):
         layout.addStretch()
 
         label = QLabel()
-        label.setPixmap(QPixmap('./bug.png'))
+        label.setPixmap(QPixmap('assets/icons/bug.png'))
         label.setStyleSheet("background-color: yellow")
         layout.addWidget(label)
 
         label1 = QLabel()
-        label1.setPixmap(QPixmap('./bug.png'))
+        label1.setPixmap(QPixmap('assets/icons/bug.png'))
         label1.setStyleSheet("background-color: yellow")
         layout.addWidget(label1)
 
@@ -86,7 +86,7 @@ class SceneTreeWidget(QTreeWidget):
         root = QTreeWidgetItem(self)
 
         root.setText(0, 'Root')
-        root.setIcon(0, QIcon('./bug.png'))
+        root.setIcon(0, QIcon('assets/icons/bug.png'))
 
         ctrl_btn = QWidget()
         layout = QHBoxLayout()
@@ -95,23 +95,23 @@ class SceneTreeWidget(QTreeWidget):
         layout.addStretch()
 
         label = QLabel()
-        label.setPixmap(QPixmap('./bug.png'))
+        label.setPixmap(QPixmap('assets/icons/bug.png'))
         label.setStyleSheet("background-color: yellow")
         layout.addWidget(label)
 
         label1 = QLabel()
-        label1.setPixmap(QPixmap('./bug.png'))
+        label1.setPixmap(QPixmap('assets/icons/bug.png'))
         label1.setStyleSheet("background-color: yellow")
         layout.addWidget(label1)
 
         ctrl_btn.setLayout(layout)
         self.setItemWidget(root, 1, ctrl_btn)
 
-        # root.setIcon(0, QIcon('./bug.png'))
-        # root.setIcon(1, QIcon('./bug.png'))
+        # root.setIcon(0, QIcon('assets/icons/bug.png'))
+        # root.setIcon(1, QIcon('assets/icons/bug.png'))
         #
         # root.setText(2, 'Root')
-        # root.setIcon(2, QIcon('./bug.png'))
+        # root.setIcon(2, QIcon('assets/icons/bug.png'))
         #
         # # todo 优化2 设置根节点的背景颜色
         # brush_red = QBrush(Qt.red)
@@ -126,7 +126,7 @@ class SceneTreeWidget(QTreeWidget):
         # 设置子节点1
         # child1 = QTreeWidgetItem()
         # child1.setText(0, 'child1')
-        # child1.setIcon(0, QIcon('./bug.png'))
+        # child1.setIcon(0, QIcon('assets/icons/bug.png'))
         #
         # self.ctrl_btn1 = QWidget()
         # layout = QHBoxLayout()
@@ -136,12 +136,12 @@ class SceneTreeWidget(QTreeWidget):
         # layout.addStretch()
         #
         # label = QLabel()
-        # label.setPixmap(QPixmap('./bug.png'))
+        # label.setPixmap(QPixmap('assets/icons/bug.png'))
         # label.setStyleSheet("background-color: yellow")
         # layout.addWidget(label)
         #
         # label1 = QLabel()
-        # label1.setPixmap(QPixmap('./bug.png'))
+        # label1.setPixmap(QPixmap('assets/icons/bug.png'))
         # label1.setStyleSheet("background-color: yellow")
         # layout.addWidget(label1)
         #
@@ -156,13 +156,13 @@ class SceneTreeWidget(QTreeWidget):
         # child2 = QTreeWidgetItem(root)
         # child2.setText(0, 'child2')
         # child2.setText(1, '')
-        # child2.setIcon(0, QIcon('./bug.png'))
+        # child2.setIcon(0, QIcon('assets/icons/bug.png'))
         #
         # # 设置子节点3
         # child3 = QTreeWidgetItem(child2)
         # child3.setText(0, 'child3')
         # child3.setText(1, 'android')
-        # child3.setIcon(0, QIcon('./bug.png'))
+        # child3.setIcon(0, QIcon('assets/icons/bug.png'))
         # 加载根节点的所有属性与子控件
         self.addTopLevelItem(root)
 

@@ -1,6 +1,6 @@
-from typing import Union
+from typing import Union, Optional
 
-from PySide6.QtCore import Qt, QPoint, QRectF, QPointF
+from PySide6.QtCore import Qt, QPoint, QPointF
 from PySide6.QtGui import QWheelEvent, QPainter
 from PySide6.QtWidgets import (
     QGraphicsView
@@ -50,7 +50,7 @@ class DrawView(QGraphicsView):
         self._v_ruler = value
 
     @property
-    def box(self) -> Union[CornerBox, None]:
+    def box(self) -> Optional[CornerBox]:
         return self._box
 
     @box.setter

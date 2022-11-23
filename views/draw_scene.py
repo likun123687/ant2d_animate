@@ -27,6 +27,7 @@ class DrawScene(QGraphicsScene):
         self._is_adding_bone: bool = False
 
         self._last_hover_bone: Union[Bone, None] = None
+        self._hovering_space = False
 
         self._pressing_arrow = None  # 点击了哪个箭头
         self._bone_pos_when_arrow_begin_drag: Union[QPointF, None] = None  # 当箭头拖动时圆环的位置
@@ -204,6 +205,7 @@ class DrawScene(QGraphicsScene):
         SIGNAL_BUS.signal_hover_bone_enter.emit(item)
 
         self._last_hover_bone = item
+        self._hovering_space = False
 
     def _hover_bone_leave(self):
         if not self._last_hover_bone:
@@ -211,8 +213,14 @@ class DrawScene(QGraphicsScene):
 
         # do sth
         SIGNAL_BUS.signal_hover_bone_leave.emit(self._last_hover_bone)
+        SIGNAL_BUS.signal_hover_space.emit()
 
         self._last_hover_bone = None
+
+    def _hover_space(self):
+        if not self._hovering_space:
+            SIGNAL_BUS.signal_hover_space.emit()
+        self._hovering_space = True
 
     def mouseMoveEvent(self, event):
         super().mouseMoveEvent(event)
@@ -235,6 +243,7 @@ class DrawScene(QGraphicsScene):
                 self._hover_bone_enter(item.parentItem())
             else:
                 self._hover_bone_leave()
+                self._hover_space()
 
             # if item is not None:
             #     self._hover_bone_enter(item, event)

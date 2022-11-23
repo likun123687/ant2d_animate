@@ -50,7 +50,7 @@ class AssetItem(QTreeWidgetItem):
         base64 = bytes(buffer.data().toBase64()).decode()
         self.setText(0, name)
         # self.setText(1, '')
-        self.setIcon(0, QIcon('./bug.png'))
+        self.setIcon(0, QIcon('assets/icons/bug.png'))
         size_str = "{}x{}".format(self._pixmap.width(), self._pixmap.height())
         self.setToolTip(0, '<img src="data:image/png;base64,{}"><br>{}'.format(base64, size_str))
 
@@ -84,7 +84,7 @@ class AssetTreeWidget(QTreeWidget):
         # 设置根节点
         self._root = QTreeWidgetItem(self)
         self._root.setText(0, 'Root')
-        self._root.setIcon(0, QIcon('./bug.png'))
+        self._root.setIcon(0, QIcon('assets/icons/bug.png'))
 
         ctrl_btn = QWidget()
         layout = QHBoxLayout()
@@ -94,12 +94,12 @@ class AssetTreeWidget(QTreeWidget):
         layout.addStretch()
 
         label = QLabel()
-        label.setPixmap(QPixmap('./bug.png'))
+        label.setPixmap(QPixmap('assets/icons/bug.png'))
         label.setStyleSheet("background-color: yellow")
         layout.addWidget(label)
 
         label1 = QLabel()
-        label1.setPixmap(QPixmap('./bug.png'))
+        label1.setPixmap(QPixmap('assets/icons/bug.png'))
         label1.setStyleSheet("background-color: yellow")
         layout.addWidget(label1)
 
@@ -120,7 +120,7 @@ class AssetTreeWidget(QTreeWidget):
         child1 = QTreeWidgetItem()
         child1.setText(0, 'child1')
         child1.setText(1, 'ios')
-        child1.setIcon(0, QIcon('./bug.png'))
+        child1.setIcon(0, QIcon('assets/icons/bug.png'))
 
         # todo 优化1 设置节点的状态
         child1.setCheckState(0, Qt.Checked)
@@ -131,13 +131,13 @@ class AssetTreeWidget(QTreeWidget):
         child2 = QTreeWidgetItem(self._root)
         child2.setText(0, 'child2')
         child2.setText(1, '')
-        child2.setIcon(0, QIcon('./bug.png'))
+        child2.setIcon(0, QIcon('assets/icons/bug.png'))
 
         # 设置子节点3
         child3 = QTreeWidgetItem(child2)
         child3.setText(0, 'child3')
         child3.setText(1, 'android')
-        child3.setIcon(0, QIcon('./bug.png'))
+        child3.setIcon(0, QIcon('assets/icons/bug.png'))
 
         # 加载根节点的所有属性与子控件
         self.addTopLevelItem(self._root)

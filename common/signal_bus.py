@@ -2,7 +2,7 @@ from PySide6.QtCore import QObject, Signal
 from PySide6.QtGui import QPixmap
 from PySide6.QtWidgets import QGraphicsEllipseItem
 
-from views.property import PropertyType
+from views.property import PropertyType, EditMode
 
 
 class SignalBus(QObject):
@@ -17,6 +17,9 @@ class SignalBus(QObject):
     signal_item_property_changed = Signal(float, PropertyType, str)  # list, str代表来源
     signal_items_property_changed_from_scene = Signal(QGraphicsEllipseItem)
     signal_update_sub_bone_scene_angle = Signal(QGraphicsEllipseItem, float)
+
+    signal_change_edit_mode = Signal(EditMode)  # 改变编辑模式
+    signal_hover_space = Signal()  # hover空白
 
 
 SIGNAL_BUS = SignalBus()
