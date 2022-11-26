@@ -28,3 +28,8 @@ class VisualProperty:
 class EditMode(IntEnum):
     SELECT = 0
     CREATE_BONE = 1
+
+
+class ActionType(IntEnum):
+    ROTATE = 0
+    MOVE = 1

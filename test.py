@@ -1,2 +1,3 @@
-a = []
-a[1]
+from PySide6.QtCore import Qt
+
+print(Qt.ArrowCursor)

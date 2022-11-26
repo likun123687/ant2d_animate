@@ -3,14 +3,13 @@ from PySide6.QtGui import QPen, QPolygonF, QBrush
 from PySide6.QtWidgets import QGraphicsEllipseItem, QGraphicsItem, QGraphicsPolygonItem
 
 
-class RotateBar(QGraphicsEllipseItem):
+class RotateHandles(QGraphicsEllipseItem):
     def move_to_center(self, x, y) -> None:
         """
         使该item的原点为中心
         """
         rect = self.boundingRect()
         offset = rect.center()
-        print("bbbb", rect, offset)
         super().moveBy(x - offset.x(), y - offset.y())
         # self.setPos(x - offset.width() / 2, y - offset.height() / 2)
 

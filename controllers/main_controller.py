@@ -25,7 +25,7 @@ class MainController:
         # toolbar
         self._tool_bar_controller = ToolBarController(self._view.tool_bar, ToolBarModel())
         SIGNAL_BUS.signal_selected_bone_changed.connect(self._tool_bar_controller.slot_selected_items_changed)
-        SIGNAL_BUS.signal_item_property_changed.connect(self._tool_bar_controller.slot_items_property_changed)
+        SIGNAL_BUS.signal_item_property_changed_from_toolbar.connect(self._tool_bar_controller.slot_items_property_changed)
         SIGNAL_BUS.signal_items_property_changed_from_scene.connect(
             self._tool_bar_controller.slot_items_property_changed_from_scene)
         SIGNAL_BUS.signal_change_edit_mode.connect(self._tool_bar_controller.slot_change_mode)
@@ -33,16 +33,15 @@ class MainController:
         # draw scene
         self._draw_scenes = {}
         draw_scene_controller = DrawSceneController(self._view.main_canvas.cur_tab.scene, DrawSceneModel())
-        SIGNAL_BUS.signal_add_bone.connect(draw_scene_controller.slot_add_bone)
-        SIGNAL_BUS.signal_selected_bone_changed.connect(draw_scene_controller.slot_selected_bone_changed)
-        SIGNAL_BUS.signal_hover_bone_enter.connect(draw_scene_controller.slot_hover_bone_enter)
-        SIGNAL_BUS.signal_hover_bone_leave.connect(draw_scene_controller.slot_hover_bone_leave)
+        # SIGNAL_BUS.signal_add_bone.connect(draw_scene_controller.slot_add_bone)
+        # SIGNAL_BUS.signal_selected_bone_changed.connect(draw_scene_controller.slot_selected_bone_changed)
+        # SIGNAL_BUS.signal_hover_bone_enter.connect(draw_scene_controller.slot_hover_bone_enter)
+        # SIGNAL_BUS.signal_hover_bone_leave.connect(draw_scene_controller.slot_hover_bone_leave)
         SIGNAL_BUS.signal_add_texture_to_bone.connect(draw_scene_controller.slot_add_texture_to_bone)
         SIGNAL_BUS.signal_update_sub_bone_scene_angle.connect(draw_scene_controller.slot_update_bone_scene_angle)
         self._draw_scenes[1] = draw_scene_controller
 
         SIGNAL_BUS.signal_change_edit_mode.connect(draw_scene_controller.slot_change_mode)
-        SIGNAL_BUS.signal_hover_space.connect(draw_scene_controller.slot_hover_space)
 
         # scene panel
         self._scene_panel_controller = ScenePanelController(self._view.scene_panel.tree, ScenePanelModel())

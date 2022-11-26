@@ -1,0 +1,6 @@
+1 修改bone， 不再为父关系
+2 控制手柄在不同模式显示
+3 多选bone
+4 继续完善mvc构架
+5 connect_arrow也要基于scene pos修改
+6

@@ -193,13 +193,13 @@ class ToolBar:
         return self._tool_map
 
     def slot_pos_x_changed(self, d):
-        SIGNAL_BUS.signal_item_property_changed.emit(d, PropertyType.POS_X, "from_toolbar")
+        SIGNAL_BUS.signal_item_property_changed_from_toolbar.emit(d, PropertyType.POS_X, "from_toolbar")
 
     def slot_pos_y_changed(self, d):
-        SIGNAL_BUS.signal_item_property_changed.emit(d, PropertyType.POS_Y, "from_toolbar")
+        SIGNAL_BUS.signal_item_property_changed_from_toolbar.emit(d, PropertyType.POS_Y, "from_toolbar")
 
     def slot_angle_changed(self, d):
-        SIGNAL_BUS.signal_item_property_changed.emit(d, PropertyType.ANGLE, "from_toolbar")
+        SIGNAL_BUS.signal_item_property_changed_from_toolbar.emit(d, PropertyType.ANGLE, "from_toolbar")
 
     def select_tool_toggle(self, checked: bool):
         if checked:

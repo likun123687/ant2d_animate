@@ -1,4 +1,3 @@
-import copy
 from typing import Union, Optional
 
 from PySide6.QtCore import Qt, QRectF, QPointF
@@ -11,7 +10,7 @@ from PySide6.QtWidgets import (
 )
 
 from common.signal_bus import SIGNAL_BUS
-from views.bone_handle import BoneHandle
+from views.ctrl_handles.select_handles import SelectHandles
 from views.connect_arrow import ConnectArrow
 from views.property import VisualProperty
 from views.texture_item import TextureItem
@@ -142,7 +141,7 @@ class Bone(Ring):
         self._tail_point_pos: Optional[QPointF] = QPointF(0, 0)
         self._arrow_angle_to_scene = 0
         self._connect_arrow: Union[ConnectArrow, None] = None
-        self._handle: Union[BoneHandle, None] = None
+        self._handle: Union[SelectHandles, None] = None
         self._is_selected: bool = False  # 是否选中
         self._texture_item: Optional[TextureItem] = None
         self._scene_width_scale: float = 1
@@ -269,7 +268,7 @@ class Bone(Ring):
         return self._handle
 
     @handler.setter
-    def handler(self, value: BoneHandle):
+    def handler(self, value: SelectHandles):
         self._handle = value
 
     @property

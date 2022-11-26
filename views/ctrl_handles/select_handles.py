@@ -6,7 +6,7 @@ HANDLER_BORDER_WIDTH = 0.1
 HANDLER_RADIUS = 0.2
 
 
-class BoneHandle(QGraphicsEllipseItem):
+class SelectHandles(QGraphicsEllipseItem):
     """
     bone的操作手柄
     """

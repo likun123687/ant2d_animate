@@ -33,7 +33,7 @@ class DivisionsBar(QWidget):
         ruler_rect = self.rect()
         painter = QPainter(self)
         p = QPen()
-        p.setStyle(Qt.GlobalColor.SolidLine)
+        p.setStyle(Qt.PenStyle.SolidLine)
         p.setWidthF(1)
         p.setCosmetic(True)
         painter.setPen(p)
